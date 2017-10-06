@@ -24,9 +24,10 @@ api = ValispaceAPI()
 # api.update_vali(id=2112, formula="3.1")
 # api.update_vali(id=2112, fields={"name": "4"})
 # api.update_vali(id=2112, fields={"blabla": "4"})
-# # api.update_vali(id=2112, fields={"formula": "1.1"})
+# api.update_vali(id=2112, fields={"formula": "1.1"})
 # api.update_vali(id=2112, fields={"name": "test name"})
 
-# old = [[2.1, 0, 0]]
-# api.update_matrix_values(443, [[3.3, 1.1, 0.6]])
+# matrix_orig = [[2.1], [0.0], [0.0]]
+# matrix_new  = [[3.3], [1.1], [0.6]]
+# api.update_matrix_formulas(443, matrix_orig)
 
