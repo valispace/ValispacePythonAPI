@@ -1,5 +1,3 @@
-from helpers import *
-
 import requests
 import json
 
@@ -61,8 +59,7 @@ class ValispaceAPI:
 
 		url     = self.valispace_login['url'] + "vali/"
 		headers = self.valispace_login['options']['Headers']
-
-		valis = requests.get(url, headers=headers).json()	
+		valis   = requests.get(url, headers=headers).json()	
 
 		return_dictionary = {}
 		for vali in valis:
@@ -70,17 +67,14 @@ class ValispaceAPI:
 
 		return return_dictionary
 
-
 	def pull_vali_names(self):
 		# Returns a list of all Valis with only names and ids
 		
-		url     = self.valispace_login['url'] + "valinames/"
-		headers = self.valispace_login['options']['Headers']
+		url       = self.valispace_login['url'] + "valinames/"
+		headers   = self.valispace_login['options']['Headers']
+		valinames = requests.get(url, headers=headers)
 
-		result  = requests.get(url, headers=headers)
-
-		return result.json()
-
+		return valinames.json()
 
 	def get_vali(self, id=None, name=None):
 		# Returns the correct Vali. Input can be id or name
@@ -112,10 +106,9 @@ class ValispaceAPI:
 
 		url = self.valispace_login['url'] + "matrix/" + str(id) + "/"
 		headers = self.valispace_login['options']['Headers']
-		
 		matrix_data = requests.get(url, headers=headers).json()
-		matrix = []
 
+		matrix = []
 		for row in range(matrix_data['number_of_rows']):
 			matrix.append([])
 			for col in range(matrix_data['number_of_columns']):
@@ -155,7 +148,7 @@ class ValispaceAPI:
 		if new_vali_data == {}:
 			print( 
 				'You have not entered any valid fields. Here is a list of updateable fields:\n' + 
-				self.list_to_bullets(_writeable_vali_fields)
+				self.__list_to_bullets(_writeable_vali_fields)
 			)
 		elif result.status_code == 200:
 			print(
@@ -172,19 +165,19 @@ class ValispaceAPI:
 		# Finds each of the Valis that correspond to the vali id (contained in each cell of the matrix)
 		# Updates the formula of each of the Valis with the formulas contained in each cell of the input matrix		
 
+		# Read Matrix
 		url     = self.valispace_login['url'] + "matrix/" + str(id) + "/"
 		headers = self.valispace_login['options']['Headers']
-
 		matrix_data = requests.get(url, headers=headers).json()
-		print matrix
-		print matrix_data["cells"]
 
+		# Check matrix dimensions
 		if not(
 			len(matrix)    == matrix_data["number_of_rows"]    and 
 			len(matrix[0]) == matrix_data["number_of_columns"]
 		):
 			print 'VALISPACE-ERROR: The dimensions of the local and the remote matrix do not match.'
 
+		# Update referenced valis in each matrix cell
 		for row in range(matrix_data['number_of_rows']):
 			for col in range(matrix_data['number_of_columns']):
 				self.update_vali(id=matrix_data['cells'][row][col], formula=matrix[row][col])
@@ -197,5 +190,5 @@ class ValispaceAPI:
 			if vali["name"] == name:
 				return vali["id"]
 
-	def list_to_bullets(self, list):
+	def __list_to_bullets(self, list):
 		return "  --> " + "\n  --> ".join(list) if list else ""

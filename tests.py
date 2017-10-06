@@ -19,8 +19,7 @@ api = ValispaceAPI()
 # 		print "--------------------------------------------------"
 # 	print "**************************************************"
 
-# print api.update_vali(id=2112, formula="1.2")
-# print api.update_vali(id=2112, value=1)
+# api.update_vali(id=2112, formula="1.2")
 # api.update_vali(id=2112, formula="3.1")
 # api.update_vali(id=2112, fields={"name": "4"})
 # api.update_vali(id=2112, fields={"blabla": "4"})
