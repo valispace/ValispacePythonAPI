@@ -1,0 +1,9 @@
+setup(name='ValispacePythonAPI',
+      version='0.1',
+      description='',
+      url='',
+      author='',
+      author_email='',
+      license='',
+      packages=['ValispacePythonAPI'],
+      zip_safe=False)

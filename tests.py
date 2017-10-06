@@ -1,4 +1,4 @@
-from valispace_sdk import ValispaceAPI
+from ValispaceAPI import ValispaceAPI
 
 api = ValispaceAPI()
 
