@@ -4,6 +4,19 @@ import requests
 import json
 
 class ValispaceAPI:
+	global _read_only_vali_fields
+	_read_only_vali_fields = [
+		'id', 'url','name', 'formatted_formula', 'value', 'uses_default_formula', 'totalmargin_plus',
+		'totalmargin_minus', 'wc_plus', 'wc_minus', 'calculated_valis', 'subscription_text'
+	]
+
+	global _writeable_vali_fields
+	_writeable_vali_fields = [
+		'baseunit', 'reference', 'minimum', 'margin_plus', 'unit', 'subscribed', 'value_baseunit', 
+		'type_name', 'old_value', 'formula', 'type', 'description', 'parent', 'tags', 'shortname', 
+		'maximum', 'margin_minus'
+	]
+
 	def __init__(self, url=None, username=None, password=None):
 		# performs the password based oAuth 2.0 login for resd/write access
 		
@@ -110,6 +123,46 @@ class ValispaceAPI:
 
 		return matrix
 
+	def update_vali(self, name=None, id=None, formula=None, value=None, fields={}):
+		# Check if no argument was passed
+		if id is None and name is None:
+			print "VALISPACE-ERROR: 1 argument expected (name or id)"
+			return
+
+		# Check if name argument was passed
+		if id is None:
+			id = self.__name_to_id(name)
+		
+		# Read Vali
+		url     = self.valispace_login['url'] + "vali/" + str(id) + "/"
+		headers = self.valispace_login['options']['Headers']
+		vali = requests.get(url, headers=headers).json() 
+
+		# Write Vali
+		new_vali_data = {}
+		stringified_new_vali_data = ""
+		if not formula is None:
+			fields["formula"] = formula
+		if not value   is None:
+			fields["value"]   = value
+		for k, v in fields.items():
+			if k in _read_only_vali_fields:
+				pass
+				# TBD
+			else:
+				new_vali_data[k] = v
+				stringified_new_vali_data += "  --> " + str(k) + " = " + str(v) + "\n"
+		result = requests.patch(url, headers=headers, json=new_vali_data)
+
+		if new_vali_data == {}:
+			print 'You have not entered any valid fields. Here is a list of updateable fields:\n' + self.list_to_bullets(_writeable_vali_fields)
+		elif result.status_code == 200:
+			print "Successfully pushed to Valispace the following fields:\n" + stringified_new_vali_data
+		else:
+			print "Invalid Request"
+			
+		return result
+
 	# Private methods
 
 	def __name_to_id(self, name):
@@ -117,3 +170,6 @@ class ValispaceAPI:
 		for vali in valis:
 			if vali["name"] == name:
 				return vali["id"]
+
+	def list_to_bullets(self, list):
+		return "  --> " + "\n  --> ".join(list) if list else ""
