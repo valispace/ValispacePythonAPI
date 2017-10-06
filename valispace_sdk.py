@@ -123,7 +123,10 @@ class ValispaceAPI:
 
 		return matrix
 
-	def update_vali(self, name=None, id=None, formula=None, value=None, fields={}):
+	def update_vali(self, name=None, id=None, formula=None, fields={}):
+		# Finds the Vali that corresponds to the input id (or name) and
+		# Updates it with the input formula (or fields)
+
 		# Check if no argument was passed
 		if id is None and name is None:
 			print "VALISPACE-ERROR: 1 argument expected (name or id)"
@@ -136,20 +139,15 @@ class ValispaceAPI:
 		# Read Vali
 		url     = self.valispace_login['url'] + "vali/" + str(id) + "/"
 		headers = self.valispace_login['options']['Headers']
-		vali = requests.get(url, headers=headers).json() 
+		vali    = requests.get(url, headers=headers).json() 
 
 		# Write Vali
 		new_vali_data = {}
 		stringified_new_vali_data = ""
 		if not formula is None:
 			fields["formula"] = formula
-		if not value   is None:
-			fields["value"]   = value
 		for k, v in fields.items():
-			if k in _read_only_vali_fields:
-				pass
-				# TBD
-			else:
+			if k in _writeable_vali_fields:
 				new_vali_data[k] = v
 				stringified_new_vali_data += "  --> " + str(k) + " = " + str(v) + "\n"
 		result = requests.patch(url, headers=headers, json=new_vali_data)
@@ -162,6 +160,51 @@ class ValispaceAPI:
 			print "Invalid Request"
 			
 		return result
+
+	# function ValispacePushMatrix(id,Matrix)
+	# % ValispacePushMatrix() pushes a Matlab Matrix with the values
+	#     global ValispaceLogin
+
+	#     if (length(ValispaceLogin)==0) 
+	#         error('VALISPACE-ERROR: You first have to run ValispaceInit()');
+	#     end
+	  
+	#     url = ValispaceLogin.url + "matrix/" + id + "/";
+	#     MatrixData = webread(url, ValispaceLogin.options);
+	    
+	    
+	    
+	#     if not (isequal(size(Matrix),[MatrixData.number_of_rows,MatrixData.number_of_columns]))
+	#         error('VALISPACE-ERROR: The dimensions of the local and the remote matrix do not match.');
+	#     end
+	    
+	#     for column = 1:MatrixData.number_of_columns
+	#        for row = 1:MatrixData.number_of_rows
+	#            ValispacePushValue(MatrixData.cells(row,column),Matrix(row,column));
+	#        end
+	#     end
+	    
+	#     [ Matrix, MatrixNames, MatrixValiIDs ] = ValispaceGetMatrix(id);
+	    
+	    
+	# end
+
+
+	def update_matrix_values(self, id, matrix):
+		url     = self.valispace_login['url'] + "matrix/" + str(id) + "/"
+		headers = self.valispace_login['options']['Headers']
+
+		matrix_data = requests.get(url, headers=headers).json()
+
+		if not(
+			len(matrix)    == matrix_data["number_of_rows"]    and 
+			len(matrix[0]) == matrix_data["number_of_columns"]
+		):
+			print 'VALISPACE-ERROR: The dimensions of the local and the remote matrix do not match.'
+
+		for row in range(matrix_data['number_of_rows']):
+			for col in range(matrix_data['number_of_columns']):
+				self.update_vali(id=matrix_data['cells'][row][col], value=matrix[row][col])
 
 	# Private methods
 

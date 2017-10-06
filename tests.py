@@ -15,12 +15,18 @@ api = ValispaceAPI()
 # 	print "**************************************************"
 # 	for cell in row:
 # 		print "--------------------------------------------------"
-# 		print cell
+# 		print cell["value"]
 # 		print "--------------------------------------------------"
 # 	print "**************************************************"
 
 # print api.update_vali(id=2112, formula="1.2")
 # print api.update_vali(id=2112, value=1)
-# api.update_vali(id=2112, fields={"type": "4"})
-# api.update_vali(id=2112, fields={"formula": "1.1"})
+# api.update_vali(id=2112, formula="3.1")
+# api.update_vali(id=2112, fields={"name": "4"})
+# api.update_vali(id=2112, fields={"blabla": "4"})
+# # api.update_vali(id=2112, fields={"formula": "1.1"})
 # api.update_vali(id=2112, fields={"name": "test name"})
+
+# old = [[2.1, 0, 0]]
+# api.update_matrix_values(443, [[3.3, 1.1, 0.6]])
+
