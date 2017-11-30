@@ -2,7 +2,7 @@ from ValispaceAPI import ValispaceAPI
 
 api = ValispaceAPI()
 
-# valis = api.pull()
+valis = api.pull()
 # print valis["2112"]
 # print api.get_vali(2112)
 # print api.get_vali(id=2112)

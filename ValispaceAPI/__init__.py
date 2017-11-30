@@ -1,23 +1,25 @@
 import requests
 import json
 
+
 class ValispaceAPI:
 	global _read_only_vali_fields
 	_read_only_vali_fields = [
-		'id', 'url','name', 'formatted_formula', 'value', 'uses_default_formula', 'totalmargin_plus',
-		'totalmargin_minus', 'wc_plus', 'wc_minus', 'calculated_valis', 'subscription_text'
+		'id', 'url', 'name', 'formatted_formula', 'value', 'uses_default_formula', 'totalmargin_plus',
+		'totalmargin_minus', 'wc_plus', 'wc_minus', 'calculated_valis', 'subscription_text', 'baseunit',
+		'subscribed', 'value_baseunit', 'type', 'type_name', 'old_value',
 	]
 
 	global _writeable_vali_fields
 	_writeable_vali_fields = [
-		'baseunit', 'reference', 'minimum', 'margin_plus', 'unit', 'subscribed', 'value_baseunit', 
-		'type_name', 'old_value', 'formula', 'type', 'description', 'parent', 'tags', 'shortname', 
-		'maximum', 'margin_minus'
+		'reference', 'margin_plus', 'margin_minus', 'unit',
+		'formula', 'description', 'parent', 'tags', 'shortname', 
+		'minimum', 'maximum',
 	]
 
 	def __init__(self, url=None, username=None, password=None):
 		# performs the password based oAuth 2.0 login for resd/write access
-		
+
 		if url is None:
 			url = raw_input('  url: ').rstrip("/")
 		if username is None:
@@ -32,26 +34,27 @@ class ValispaceAPI:
 		# if password is None:
 		# 	password = "password"
 
-		### TBD - check for SSL connection, before sending the username and password ###
+		# TODO - check for SSL connection, before sending the username and password ###
 
 		try:
 			oauth_url = url + "/o/token/"
-			client_id = "docs.valispace.com/user-guide/addons/#matlab" # registered client-id in Valispace Deployment
-			result = requests.post(oauth_url, data = {
+			client_id = "docs.valispace.com/user-guide/addons/#matlab"  # registered client-id in Valispace Deployment
+			result = requests.post(oauth_url, data={
 				'grant_type': 'password',
-		  	'username':   username,
-		  	'password':   password,
-		  	'client_id':  client_id
+				'username': username,
+				'password': password,
+				'client_id': client_id,
 			})
+			print result
 			access = "Bearer " + result.json()['access_token']
-			
-			self.valispace_login = { 
-				'url': url + '/rest/', 
+
+			self.valispace_login = {
+				'url': url + '/rest/',
 				'options': {
-					'Timeout': 200, 
-					'Headers': { 'Authorization': access, 'Content-Type': 'application/json' }
-			  }
-		  }
+					'Timeout': 200,
+					'Headers': {'Authorization': access, 'Content-Type': 'application/json'}
+				}
+			}
 
 			print "You have been successfully connected to the " + self.valispace_login['url'] + " API."
 		except:
