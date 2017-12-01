@@ -1,7 +1,7 @@
 from distutils.core import setup
 setup(
-    name='ValispacePythonAPI',
-    packages=['ValispacePythonAPI'],  # this must be the same as the name above
+    name='valispace',
+    packages=['valispace'],  # this must be the same as the name above
     version='0.1',
     description='Valispace python API',
     author='Valispace',
