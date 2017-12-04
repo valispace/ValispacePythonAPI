@@ -7,7 +7,7 @@ setup(
     author='Valispace',
     author_email='contact-us@valispace.com',
     url='https://github.com/valispace/ValispacePythonAPI',  # use the URL to the github repo
-    download_url='https://github.com/peterldowns/mypackage/archive/0.1.tar.gz',  # I'll explain this in a second
+    download_url='https://github.com/valispace/ValispacePythonAPI/archive/0.1.tar.gz',  # I'll explain this in a second
     keywords=[],  # arbitrary keywords
     classifiers=[],
 )
