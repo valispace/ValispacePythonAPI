@@ -33,15 +33,15 @@ class API:
 		# if url      is None:
 		# 	url      = "https://demo.valispace.com"
 		# if username is None:
-		# 	username = "francisco.lgpc"
+		# 	username = ""
 		# if password is None:
-		# 	password = "password"
+		# 	password = ""
 
 		# TODO - check for SSL connection, before sending the username and password ###
 
 		try:
 			oauth_url = url + "/o/token/"
-			client_id = "docs.valispace.com/user-guide/addons/#matlab"  # registered client-id in Valispace Deployment
+			client_id = "ValispaceREST"  # registered client-id in Valispace Deployment
 			result = requests.post(oauth_url, data={
 				'grant_type': 'password',
 				'username': username,
@@ -62,18 +62,31 @@ class API:
 		except:
 			print "VALISPACE-ERROR: Invalid credentials or url"
 
-	def all_valis(self):
+	def all_data(self, type=None):
 		"""
-		Returns a dict of all Valis with their properties
+		Returns a dict of all component/vali/textvali/tags with their properties
 		"""
+		# Check if no argument was passed
+		if type is None:
+			print "VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags)"
+			return
 
-		url = self.valispace_login['url'] + "vali/"
+		# URL
+		if type is 'component':
+			url = self.valispace_login['url'] + "component/"
+		elif type is 'vali':
+			url = self.valispace_login['url'] + "vali/"
+		elif type is 'textvali':
+			url = self.valispace_login['url'] + "textvali/"
+		elif type is 'tag':
+			url = self.valispace_login['url'] + "tag/"
+
 		headers = self.valispace_login['options']['Headers']
-		valis = requests.get(url, headers=headers).json()	
+		get_data = requests.get(url, headers=headers).json()	
 
 		return_dictionary = {}
-		for vali in valis:
-			return_dictionary[str(vali["id"])] = vali
+		for data in get_data:
+			return_dictionary[str(data["id"])] = data
 
 		return return_dictionary
 
@@ -112,6 +125,7 @@ class API:
 		response = requests.get(url, headers=headers)
 
 		return response.json()
+
 
 	def get_value(self, id=None, name=None):
 		# Returns the value of a vali.
@@ -152,8 +166,12 @@ class API:
 			if k in _writeable_vali_fields:
 				new_vali_data[k] = v
 				stringified_new_vali_data += "  --> " + str(k) + " = " + str(v) + "\n"
-		result = requests.patch(url, headers=headers, json=new_vali_data)
+		result = requests.patch(url, headers=headers, data=new_vali_data)
+		print headers
+		print new_vali_data
 
+		print "STATUS CODE: ", result.status_code
+		
 		if new_vali_data == {}:
 			print(
 				'You have not entered any valid fields. Here is a list of updateable fields:\n' + 
@@ -168,6 +186,43 @@ class API:
 			print "Invalid Request"
 
 		return result
+
+	def post_data(self, type=None, data={}):
+		# Post new component/vali/textvali/tags with the input data
+
+		# Check if no argument was passed
+		if data is None:
+			print "VALISPACE-ERROR: Data argument expected"
+			return
+		elif type is None:
+			print "VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags)"
+			return
+
+		# URL
+		if type is 'component':
+			url = self.valispace_login['url'] + "component/"
+		elif type is 'vali':
+			url = self.valispace_login['url'] + "vali/"
+		elif type is 'textvali':
+			url = self.valispace_login['url'] + "textvali/"
+		elif type is 'tag':
+			url = self.valispace_login['url'] + "tag/"
+		
+		headers = self.valispace_login['options']['Headers']
+		#print "requests.post(",url,", headers=",headers,", data=",data,")"
+		result = requests.post(url, headers=headers, data=data)
+
+		if result.status_code == 201:
+			print "Successfully updated Vali:\n" + str(data) + "\n"
+		elif result.status_code == 204:
+			print "The server successfully processed the request, but is not returning any content (status code: 204)\n"
+		elif result.status_code == 500:
+			print "The server encountered an unexpected condition which prevented it from fulfilling the request (status code: 500)\n"
+		else:
+			print "Invalid Request (status code: ",result.status_code,")\n"
+
+		return result.json()
+
 
 	def get_matrix(self, id):
 		# Returns the correct Matrix. Input id.

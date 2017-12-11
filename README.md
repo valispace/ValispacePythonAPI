@@ -4,7 +4,7 @@ The Valispace python API lets you access and update objects in your Valispace de
 
 ## Getting Started
 
-To make use of the Valispace API you must have a valid login to any Valispace deployment. If you don't have an account, you can get a demo account at [demo.valispace.com](https://demo.valispace.com).
+To make use of the Valispace API you must have a valid login to any Valispace deployment. If you don't have an account, you can get a demo account at [demo.valispace.com](https://demo.valispace.com). You can also find further documentation in [docs.valispace.com] (http://www.valispace.com/docs/)
 
 ### Installing
 
@@ -32,10 +32,18 @@ At this step you will need to enter your Valispace url (e.g. https://demo.valisp
 
 Then use the Valispace API like this:
 
-Get a dict of all Valis:
+Get a dict of an entire data type:
 
 ```
-all_valis = valispace.all_valis()
+all_valis = valispace.all_data(type='vali')
+```
+
+The type field can be a 'component', 'vali', 'textvali' or 'tag'
+
+Post new data:
+
+```
+all_valis = valispace.post_data(type='vali')
 ```
 
 Get all Vali ids and names:
