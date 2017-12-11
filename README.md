@@ -4,7 +4,7 @@ The Valispace python API lets you access and update objects in your Valispace de
 
 ## Getting Started
 
-To make use of the Valispace API you must have a valid login to any Valispace deployment. If you don't have an account, you can get a demo account at [demo.valispace.com](https://demo.valispace.com). You can also find further documentation in [docs.valispace.com] (http://www.valispace.com/docs/)
+To make use of the Valispace API you must have a valid login to any Valispace deployment. If you don't have an account, you can get a demo account at [demo.valispace.com](https://demo.valispace.com). You can also find further documentation in [docs.valispace.com](http://www.valispace.com/docs/)
 
 ### Installing
 
