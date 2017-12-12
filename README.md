@@ -16,13 +16,13 @@ pip install valispace
 
 ### Using the API
 
-Import valispace API:
+**Import valispace API:**
 
 ```
 import valispace
 ```
 
-And initialize with:
+**And initialize with:**
 
 ```
 valispace = valispace.API()
@@ -32,52 +32,104 @@ At this step you will need to enter your Valispace url (e.g. https://demo.valisp
 
 Then use the Valispace API like this:
 
-Get a dict of an entire data type:
+**Get a dict of an entire data type:**
 
 ```
 all_valis = valispace.all_data(type='vali')
 ```
 
-The type field can be a 'component', 'vali', 'textvali' or 'tag'
+The type field can be: '*component*', '*vali*', '*textvali*' or '*tag*'
 
-Post new data:
+**Post new data:**
 
 ```
-all_valis = valispace.post_data(type='vali')
+valispace.post_data(type='vali', data=JSON)
+
 ```
 
-Get all Vali ids and names:
+The input data should be a single JSON object. Check the examples:
+```
+import valispace
+valispace = valispace.API()
 
+# -- Insert new Component --
+valispace.post_data(type='component', data="""{
+        "name": "component_name",
+        "description": "Insert description here",
+        "parent": null,
+        "project": 25,
+        "valis": [],
+        "tags": [30, 31, 32]
+    }""")
+
+# -- Insert new Vali --
+valispace.post_data(type='vali', data="""{
+        "parent": 438,
+        "shortname": "mass",
+        "description": "",
+        "unit": "kg",
+        "formula": "5",
+        "wc_minus": "5",
+        "wc_plus": "5",
+        "minimum": null,
+        "maximum": null,
+        "margin_minus": "0",
+        "margin_plus": "0",
+        "tags": [],
+        "uses_default_formula": false,
+        "valis_used": [],
+        "reference": "",
+        "type": null
+    }""")
+
+# -- Insert new Textvali --
+valispace.post_data(type='textvali', data="""{
+        "shortname": "Message",
+        "text": "Message text",
+        "parent": 438
+    }""")
+
+# -- Insert new Tag --
+valispace.post_data(type='tag', data="""{
+        "name": "white-tag",
+        "color": "#FFFFFF"
+    }""")
+```
+**Notes:**
+- The "name" fields should never be repeated, this will result in a error in the REST API.
+- The "valis" are automatically updated when new valis with this componenet id are inserted
+
+**Get all Vali ids and names:**
 ```
 all_vali_names = valispace.all_vali_names()
 ```
 
-Get a Vali with all properties:
+**Get a Vali with all properties:**
 
 ```
 a = valispace.get_vali(id=50)
 b = valispace.get_vali(name="Fan.Mass")
 ```
 
-Get the value of a Vali:
+**Get the value of a Vali:**
 
 ```
 value = valispace.get_value(id=50)
 ```
 
-Update a Vali formula:
+**Update a Vali formula:**
 
 ```
 valispace.update_vali(id=50, formula=str(value + 1))
 ```
 
-Get a matrix:
+**Get a matrix:**
 
 ```
 matrix = valispace.get_matrix_str(id=57)
 ```
 
-Update a matrix:
+**Update a matrix:**
 
 ```
 valispace.update_matrix_formulas(57, [[2.1], [0.0], [0.0]])
