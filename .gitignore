@@ -3,6 +3,8 @@ build/
 dist/
 *.egg-info/
 *.egg
+
+.vscode/
 *.py[cod]
 __pycache__/
 *.so
