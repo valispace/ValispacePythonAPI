@@ -37,7 +37,6 @@ Then use the Valispace API like this:
 ```python
 all_valis = valispace.all_data(type='vali')
 ```
-
 The type field can be: '*component*', '*vali*', '*textvali*' or '*tag*'
 
 **Post new data:**
@@ -98,22 +97,24 @@ valispace.post_data(type='tag', data="""{
 - The "name" fields should never be repeated, this will result in a error in the REST API.
 - The "valis" fields in component are automatically updated when new valis with are inserted with this component id in the parent field
 
+#### Valis
+**Get Valis with the specified arguments:**
+
+Argument | Example
+------------- | -------------
+id | `valispace.get_vali(id=1)`
+name | `valispace.get_vali(name='Fan.Mass')`
+workspace_id | `valispace.get_vali(workspace_id=1)`
+project_id | `valispace.get_vali(project_id=1)`
+parent_id | `valispace.get_vali(parent_id=1)`
+parent_name | `valispace.get_vali(parent_name='Fan')`
+tag_id | `valispace.get_vali(tag_id=10)`
+tag_name | `valispace.get_vali(workspace_id='example_tag')`
+valis_marked_as_impacted | `valispace.get_vali(valis_marked_as_impacted='10')`
+
 **Get all Vali ids and names:**
 ```python
 all_vali_names = valispace.all_vali_names()
-```
-
-**Get a Vali with all properties:**
-
-```python
-a = valispace.get_vali(id=50)
-b = valispace.get_vali(name="Fan.Mass")
-```
-
-**Get the value of a Vali:**
-
-```python
-value = valispace.get_value(id=50)
 ```
 
 **Update a Vali formula:**
@@ -133,6 +134,29 @@ matrix = valispace.get_matrix_str(id=57)
 ```python
 valispace.update_matrix_formulas(57, [[2.1], [0.0], [0.0]])
 ```
+
+#### Components
+**Get Components with the specified arguments:**
+
+Argument | Example
+------------- | -------------
+id | `valispace.get_component(id=1)`
+name | `valispace.get_component(name='Blade')`
+workspace_id | `valispace.get_component(workspace_id=1)`
+project_id | `valispace.get_component(project_id=1)`
+project_name | `valispace.get_component(project_name='Fan')`
+parent_id | `valispace.get_component(parent_id=1)`
+tag_id | `valispace.get_component(tag_id=10)`
+tag_name | `valispace.get_component(workspace_id='example_tag')`
+
+#### Projects
+**Get Projects with the specified arguments:**
+
+Argument | Example
+------------- | -------------
+id | `valispace.get_project(id=1)`
+name | `valispace.get_project(name='Fan')`
+workspace_id | `valispace.get_project(workspace_id=1)`
 
 <!-- ## Contributing
 

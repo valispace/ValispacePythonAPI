@@ -26,19 +26,19 @@ class API:
 
 		print("--- Authenticating Valispace ---")
 
-		# if url is None:
-		# 	url = raw_input('Your Valispace url: ').rstrip("/")
-		# if username is None:
-		# 	username = raw_input('Username: ')
-		# if password is None:
-		# 	password = getpass.getpass('Password: ')
-
 		if url is None:
-			url = "http://192.168.99.100:8000"
+			url = raw_input('Your Valispace url: ').rstrip("/")
 		if username is None:
-			username = "admin"
+			username = raw_input('Username: ')
 		if password is None:
-			password = "844bct"
+			password = getpass.getpass('Password: ')
+
+		# if url is None:
+		# 	url = ""
+		# if username is None:
+		# 	username = ""
+		# if password is None:
+		# 	password = ""
 
 		# TODO - check for SSL connection, before sending the username and password ###
 
