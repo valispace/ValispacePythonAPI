@@ -18,13 +18,13 @@ pip install valispace
 
 **Import valispace API:**
 
-```
+```python
 import valispace
 ```
 
 **And initialize with:**
 
-```
+```python
 valispace = valispace.API()
 ```
 
@@ -34,7 +34,7 @@ Then use the Valispace API like this:
 
 **Get a dict of an entire data type:**
 
-```
+```python
 all_valis = valispace.all_data(type='vali')
 ```
 
@@ -42,13 +42,12 @@ The type field can be: '*component*', '*vali*', '*textvali*' or '*tag*'
 
 **Post new data:**
 
-```
-valispace.post_data(type='vali', data=JSON)
-
+```python
+valispace.post_data(type='vali', data=json_object)
 ```
 
 The input data should be a single JSON object. Check the examples:
-```
+```python
 import valispace
 valispace = valispace.API()
 
@@ -97,41 +96,41 @@ valispace.post_data(type='tag', data="""{
 ```
 **Notes:**
 - The "name" fields should never be repeated, this will result in a error in the REST API.
-- The "valis" are automatically updated when new valis with this componenet id are inserted
+- The "valis" fields in component are automatically updated when new valis with are inserted with this component id in the parent field
 
 **Get all Vali ids and names:**
-```
+```python
 all_vali_names = valispace.all_vali_names()
 ```
 
 **Get a Vali with all properties:**
 
-```
+```python
 a = valispace.get_vali(id=50)
 b = valispace.get_vali(name="Fan.Mass")
 ```
 
 **Get the value of a Vali:**
 
-```
+```python
 value = valispace.get_value(id=50)
 ```
 
 **Update a Vali formula:**
 
-```
+```python
 valispace.update_vali(id=50, formula=str(value + 1))
 ```
 
 **Get a matrix:**
 
-```
+```python
 matrix = valispace.get_matrix_str(id=57)
 ```
 
 **Update a matrix:**
 
-```
+```python
 valispace.update_matrix_formulas(57, [[2.1], [0.0], [0.0]])
 ```
 
