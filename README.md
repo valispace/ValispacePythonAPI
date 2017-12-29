@@ -97,7 +97,7 @@ valispace.post_data(type='tag', data="""{
 - The "name" fields should never be repeated, this will result in a error in the REST API.
 - The "valis" fields in component are automatically updated when new valis with are inserted with this component id in the parent field
 
-#### Valis
+
 **Get Valis with the specified arguments:**
 
 Argument | Example
@@ -135,7 +135,6 @@ matrix = valispace.get_matrix_str(id=57)
 valispace.update_matrix_formulas(57, [[2.1], [0.0], [0.0]])
 ```
 
-#### Components
 **Get Components with the specified arguments:**
 
 Argument | Example
@@ -149,7 +148,7 @@ parent_id | `valispace.get_component(parent_id=1)`
 tag_id | `valispace.get_component(tag_id=10)`
 tag_name | `valispace.get_component(workspace_id='example_tag')`
 
-#### Projects
+
 **Get Projects with the specified arguments:**
 
 Argument | Example
