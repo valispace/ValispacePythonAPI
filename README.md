@@ -28,7 +28,11 @@ import valispace
 valispace_API = valispace.API()
 ```
 
-At this step you will need to enter your Valispace url (e.g. https://demo.valispace.com), username and password for authentication.
+At this step you will need to enter your Valispace url (e.g. https://demo.valispace.com), username and password for authentication, or use the one line function:
+
+```python
+valispace_API = valispace.API(url='https://demo.valispace.com', username='demo_user', password='xxxxx')
+```
 
 Then use the Valispace API like this:
 
@@ -38,6 +42,7 @@ Then use the Valispace API like this:
 all_valis = valispace_API.all_data(type='vali')
 ```
 The type field can be: '*component*', '*vali*', '*textvali*' or '*tag*'
+
 
 **Get all Vali ids and names:**
 ```python
@@ -64,7 +69,7 @@ project_id | `valispace_API.get_component(project_id=1)`
 project_name | `valispace_API.get_component(project_name='Fan')`
 parent_id | `valispace_API.get_component(parent_id=1)`
 tag_id | `valispace_API.get_component(tag_id=10)`
-tag_name | `valispace_API.get_component(workspace_id='example_tag')`
+tag_name | `valispace_API.get_component(tag_name='example_tag')`
 
 
 **Get Valis with the specified arguments:**
@@ -78,21 +83,21 @@ project_id | `valispace_API.get_vali(project_id=1)`
 parent_id | `valispace_API.get_vali(parent_id=1)`
 parent_name | `valispace_API.get_vali(parent_name='Fan')`
 tag_id | `valispace_API.get_vali(tag_id=10)`
-tag_name | `valispace_API.get_vali(workspace_id='example_tag')`
+tag_name | `valispace_API.get_vali(tag_name='example_tag')`
 valis_marked_as_impacted | `valispace_API.get_vali(valis_marked_as_impacted='10')`
 
 
 **Get a matrix:**
 
 ```python
-matrix = valispace_API.get_matrix_str(id=57)
+matrix = valispace_API.get_matrix(id=57)
 ```
 
 
 **Update a Vali formula:**
 
 ```python
-valispace_API.update_vali(id=50, formula=str(value + 1))
+valispace_API.update_vali(id=50, formula='(10.5+48)/4')
 ```
 
 
@@ -120,7 +125,6 @@ valispace_API.post_data(type='component', data="""{
         "description": "Insert description here",
         "parent": null,
         "project": 25,
-        "valis": [],
         "tags": [30, 31, 32]
     }""")
 
@@ -156,7 +160,6 @@ valispace_API.post_data(type='tag', data="""{
 
 **Notes:**
 - The "name" fields should never be repeated, this will result in a error in the REST API.
-- The "valis" fields in component are automatically updated when new valis with are inserted with this component id in the parent field
 
 
 <!-- ## Contributing
