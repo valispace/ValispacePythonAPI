@@ -26,19 +26,19 @@ class API:
 
 		print("--- Authenticating Valispace ---")
 
-		if url is None:
-			url = raw_input('Your Valispace url: ').rstrip("/")
-		if username is None:
-			username = raw_input('Username: ')
-		if password is None:
-			password = getpass.getpass('Password: ')
-
 		# if url is None:
-		# 	url = ""
+		# 	url = raw_input('Your Valispace url: ').rstrip("/")
 		# if username is None:
-		# 	username = ""
+		# 	username = raw_input('Username: ')
 		# if password is None:
-		# 	password = ""
+		# 	password = getpass.getpass('Password: ')
+
+		if url is None:
+			url = "http://192.168.99.100:8000"
+		if username is None:
+			username = "admin"
+		if password is None:
+			password = "844bct"
 
 		# TODO - check for SSL connection, before sending the username and password ###
 
@@ -100,8 +100,9 @@ class API:
 
 		return valinames.json()
 
-	def get_vali(self, id=None, name=None, workspace_id=None, project_id=None, parent_id=None, parent_name=None, tag_id=None, tag_name=None, valis_marked_as_impacted=None):
-		""" Returns the correct Vali(s) """
+	def get_vali(self, id=None, name=None):
+		""" Returns JSON of a unique Vali. Input can be id (int) or name (string).
+		Use the full name (not the shortname) for the name argument."""
 
 		if id:
 			try:
@@ -110,13 +111,37 @@ class API:
 				print("VALISPACE-ERROR: Vali id must be an integer")
 				return
 
+		# Check if no argument was passed
+		if id is None and name is None:
+			print("VALISPACE-ERROR: 1 argument expected (name or id)")
+			return
+
+		url = self.valispace_login['url'] + "vali/?"
+		if id:
+			url += "id=" + str(id)
+		elif name:
+			url += "name=" + str(name)
+
+		# Access API
+		headers = self.valispace_login['options']['Headers']
+
+		response = requests.get(url, headers=headers)
+
+		return response.json()
+
+	def filter_vali(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None, parent_id=None,
+																	parent_name=None, tag_id=None, tag_name=None, vali_marked_as_impacted=None):
+		""" Returns JSON with all the Valis that mach the input arguments.
+		Inputs are integers for IDs or vali_marked_as_impacted strings, and strings for names.
+		Use the component 'unique_name' (not the 'name') in the parent_name argument."""
+
 		if workspace_id:
 			try:
 				workspace_id = int(workspace_id)
 			except:
 				print("VALISPACE-ERROR: Workspace id must be an integer")
 				return
-			
+
 		if project_id:
 			try:
 				project_id = int(project_id)
@@ -138,61 +163,80 @@ class API:
 				print("VALISPACE-ERROR: Tag id must be an integer")
 				return
 
-		if valis_marked_as_impacted:
+		if vali_marked_as_impacted:
 			try:
-				valis_marked_as_impacted = int(valis_marked_as_impacted)
+				vali_marked_as_impacted = int(vali_marked_as_impacted)
 			except:
-				print("VALISPACE-ERROR: Valis_marked_as_impacted must be an integer")
+				print("VALISPACE-ERROR: Vali_marked_as_impacted must be an integer")
 				return
 
 		# Check if no argument was passed
-		if id is None and name is None and workspace_id is None and project_id is None and parent_id is None and parent_name is None and tag_id is None and tag_name is None and valis_marked_as_impacted is None:
+		if workspace_id is None and workspace_name is None and project_id is None and project_name is None \
+			and parent_id is None and parent_name is None and tag_id is None and tag_name is None \
+			and vali_marked_as_impacted is None:
+
 			print("VALISPACE-ERROR: at least 1 argument expected")
 			return
 
-		# Increment function to add multiple fields to url
-		def increment(url):
-			if not url.endswith('?'):
-					url += "&"
-			return url
-
 		# URL
 		url = self.valispace_login['url'] + "vali/?"
-		if id:
-			url += "id=" + str(id)
-		elif name:
-			url += "shortname=" + str(name)
-		else:
-			url += "?"
-			if workspace_id:
-				url += "parent__project__workspace=" + str(project_id)
-			if project_id:
-				url = increment(url) + "parent__project__id=" + str(project_id)
-			if parent_id:
-				url = increment(url) + "parent__id=" + str(parent_id)
-			if parent_name:
-				url = increment(url) + "parent__name=" + str(parent_name)
-			if tag_id:
-				url = increment(url) + "tags__id=" + str(tag_id)
-			if tag_name:
-				url = increment(url) + "tags__name=" + str(tag_name)
-			if valis_marked_as_impacted:
-				url = increment(url) + "valis_marked_as_impacted=" + str(valis_marked_as_impacted)
+		if workspace_id:
+			url += "parent__project__workspace=" + str(workspace_id)
+		elif workspace_name:
+			url = self.__increment_url(url) + "parent__project__workspace__name=" + str(workspace_name)
+		elif project_id:
+			url = self.__increment_url(url) + "parent__project__id=" + str(project_id)
+		elif project_name:
+			url = self.__increment_url(url) + "parent__project__name=" + str(project_name)
+		elif parent_id:
+			url = self.__increment_url(url) + "parent__id=" + str(parent_id)
+		elif parent_name:
+			url = self.__increment_url(url) + "parent__unique_name=" + str(parent_name)
+		elif tag_id:
+			url = self.__increment_url(url) + "tags__id=" + str(tag_id)
+		elif tag_name:
+			url = self.__increment_url(url) + "tags__name=" + str(tag_name)
+		elif vali_marked_as_impacted:
+			url = self.__increment_url(url) + "valis_marked_as_impacted=" + str(vali_marked_as_impacted)
 
 		headers = self.valispace_login['options']['Headers']
 		response = requests.get(url, headers=headers)
 
 		return response.json()
 
-	def get_component(self, id=None, name=None, workspace_id=None, project_id=None, project_name=None, parent_id=None, tag_id=None, tag_name=None):
-		""" Returns the correct Component(s) """
+	def get_component(self, id=None, unique_name=None):
+		""" Returns JSON of a unique Component. Input can be id (int) or name (string)."""
 
 		if id:
 			try:
 				id = int(id)
 			except:
-				print("VALISPACE-ERROR: Vali id must be an integer")
+				print("VALISPACE-ERROR: Component id must be an integer")
 				return
+
+		# Check if no argument was passed
+		if id is None and unique_name is None:
+			print("VALISPACE-ERROR: 1 argument expected (name or id)")
+			return
+
+		url = self.valispace_login['url'] + "component/?"
+		if id:
+			url += "id=" + str(id)
+		elif unique_name:
+			url += "unique_name=" + str(unique_name)
+
+		# Access API
+		headers = self.valispace_login['options']['Headers']
+
+		response = requests.get(url, headers=headers)
+
+		return response.json()
+
+	def filter_component(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None, parent_id=None,
+																						parent_name=None, tag_id=None, tag_name=None):
+		""" Returns JSON with all the Components that mach the input arguments.
+		Inputs are integers for IDs and strings for names.
+		Use the component 'unique_name' (not the 'name') in the parent_name argument."""
 
 		if workspace_id:
 			try:
@@ -223,36 +267,30 @@ class API:
 				return
 
 		# Check if no argument was passed
-		if id is None and name is None and workspace_id is None and project_id is None and project_name is None and parent_id is None and tag_id is None and tag_name is None:
+		if workspace_id is None and workspace_name is None and project_id is None and project_name is None \
+			and parent_id is None and parent_name is None and tag_id is None and tag_name is None:
+
 			print("VALISPACE-ERROR: at least 1 argument expected")
 			return
 
-		# Increment function to add multiple fields to url
-		def increment(url):
-			if not url.endswith('?'):
-					url += "&"
-			return url
-
-		# Access API
 		# URL
 		url = self.valispace_login['url'] + "component/?"
-		if id:
-			url += "id=" + str(id)
-		elif name:
-			url += "name=" + str(name)
-		else:
-			if workspace_id:
-				url += "project__workspace=" + str(workspace_id)
-			if project_id:
-				url = increment(url) + "project__id=" + str(project_id)
-			if project_name:
-				url = increment(url) + "project__name=" + str(project_name)
-			if parent_id:
-				url = increment(url) + "parent=" + str(parent_id)
-			if tag_id:
-				url = increment(url) + "tags__id=" + str(tag_id)
-			if tag_name:
-				url = increment(url) + "tags__name=" + str(tag_name)
+		if workspace_id:
+			url += "project__workspace=" + str(workspace_id)
+		elif workspace_name:
+			url = self.__increment_url(url) + "workspace__name=" + str(workspace_name)
+		elif project_id:
+			url = self.__increment_url(url) + "project__id=" + str(project_id)
+		elif project_name:
+			url = self.__increment_url(url) + "project__name=" + str(project_name)
+		elif parent_id:
+			url = self.__increment_url(url) + "parent=" + str(parent_id)
+		elif parent_name:
+			url = self.__increment_url(url) + "parent__unique_name=" + str(parent_name)
+		elif tag_id:
+			url = self.__increment_url(url) + "tags__id=" + str(tag_id)
+		elif tag_name:
+			url = self.__increment_url(url) + "tags__name=" + str(tag_name)
 
 		headers = self.valispace_login['options']['Headers']
 		response = requests.get(url, headers=headers)
@@ -260,7 +298,7 @@ class API:
 		return response.json()
 
 	def get_project(self, id=None, name=None, workspace_id=None):
-		""" Returns the correct Project(s) """
+		""" Returns JSON of a unique Project. Input can be id (int) or name (string) """
 
 		if id:
 			try:
@@ -269,23 +307,10 @@ class API:
 				print("VALISPACE-ERROR: Vali id must be an integer")
 				return
 
-		if workspace_id:
-			try:
-				workspace_id = int(workspace_id)
-			except:
-				print("VALISPACE-ERROR: Workspace id must be an integer")
-				return
-
 		# Check if no argument was passed
-		if id is None and name is None and workspace_id:
-			print("VALISPACE-ERROR: at least 1 argument expected")
+		if id is None and name is None:
+			print("VALISPACE-ERROR: 1 argument expected (name or id)")
 			return
-
-		# Increment function to add multiple fields to url
-		def increment(url):
-			if not url.endswith('?'):
-					url += "&"
-			return url
 
 		# Access API
 		# URL
@@ -294,15 +319,39 @@ class API:
 			url += "id=" + str(id)
 		elif name:
 			url += "name=" + str(name)
-		else:
-			if workspace_id:
-				url += "workspace=" + str(workspace_id)
 
-		print url
 		headers = self.valispace_login['options']['Headers']
 		response = requests.get(url, headers=headers)
 
 		return response.json()
+
+	def filter_project(self, workspace_id=None, workspace_name=None):
+		""" Returns JSON with all the Projects that mach the input arguments.
+		Inputs are integers for IDs and strings for names."""
+		if workspace_id:
+			try:
+				workspace_id = int(workspace_id)
+			except:
+				print("VALISPACE-ERROR: Workspace id must be an integer")
+				return
+
+		# Check if no argument was passed
+		if workspace_id is None and workspace_name is None:
+
+			print("VALISPACE-ERROR: at least 1 argument expected")
+			return
+
+		# URL
+		url = self.valispace_login['url'] + "project/?"
+		if workspace_id:
+			url += "workspace=" + str(workspace_id)
+		elif workspace_name:
+			url = self.__increment_url(url) + "workspace__name=" + str(workspace_name)
+
+		headers = self.valispace_login['options']['Headers']
+		response = requests.get(url, headers=headers)
+
+		return response.json()	
 
 	def get_value(self, id=None, name=None):
 		""" Returns the value of a vali. """
@@ -471,3 +520,9 @@ class API:
 
 	def __list_to_bullets(self, list):
 		return "  --> " + "\n  --> ".join(list) if list else ""
+
+	# Increment function to add multiple fields to url
+	def __increment_url(self, url):
+		if not url.endswith('?'):
+				url += "&"
+		return url
