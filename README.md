@@ -25,10 +25,14 @@ import valispace
 **And initialize with:**
 
 ```python
-valispace = valispace.API()
+valispace_API = valispace.API()
 ```
 
-At this step you will need to enter your Valispace url (e.g. https://demo.valispace.com), username and password for authentication.
+At this step you will need to enter your Valispace url (e.g. https://demo.valispace.com), username and password for authentication, or use the one line function:
+
+```python
+valispace_API = valispace.API(url='https://demo.valispace.com', username='demo_user', password='xxxxx')
+```
 
 Then use the Valispace API like this:
 
@@ -37,7 +41,7 @@ Then use the Valispace API like this:
 
 A dict of an entire data type:
 ```python
-all_valis = valispace.all_data(type='vali')
+all_valis = valispace_API.all_data(type='vali')
 ```
 The 'type' field can be: '*component*', '*vali*', '*textvali*' or '*tag*'
 
@@ -116,57 +120,53 @@ valispace.update_matrix_formulas(57, [[2.1], [0.0], [0.0]])
 
 ### POST
 ```python
-valispace.post_data(type='vali', data=json_object)
+valispace_API.post_data(type='vali', data=json_object)
 ```
 
 The input data should be a single JSON object. Check the examples:
 ```python
 import valispace
-valispace = valispace.API()
+valispace_API = valispace.API()
 
 # -- Insert new Component --
-valispace.post_data(type='component', data="""{
+valispace_API.post_data(type='component', data="""{
         "name": "component_name",
         "description": "Insert description here",
         "parent": null,
         "project": 25,
-        "valis": [],
         "tags": [30, 31, 32]
     }""")
 
 # -- Insert new Vali --
-valispace.post_data(type='vali', data="""{
+valispace_API.post_data(type='vali', data="""{
         "parent": 438,
         "shortname": "mass",
         "description": "",
         "unit": "kg",
         "formula": "5",
-        "wc_minus": "5",
-        "wc_plus": "5",
         "minimum": null,
         "maximum": null,
         "margin_minus": "0",
         "margin_plus": "0",
-        "tags": [],
         "uses_default_formula": false,
-        "valis_used": [],
         "reference": "",
         "type": null
     }""")
 
 # -- Insert new Textvali --
-valispace.post_data(type='textvali', data="""{
+valispace_API.post_data(type='textvali', data="""{
         "shortname": "Message",
         "text": "Message text",
         "parent": 438
     }""")
 
 # -- Insert new Tag --
-valispace.post_data(type='tag', data="""{
+valispace_API.post_data(type='tag', data="""{
         "name": "white-tag",
         "color": "#FFFFFF"
     }""")
 ```
+
 **Notes:**
 - The "name" fields should never be repeated, this will result in a error from the Valispace's REST API.
 - The "valis" fields in a component are automatically updated when new valis are inserted with the component's id in the parent field
