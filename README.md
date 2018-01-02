@@ -25,14 +25,10 @@ import valispace
 **And initialize with:**
 
 ```python
-valispace_API = valispace.API()
+valispace = valispace.API()
 ```
 
 At this step you will need to enter your Valispace url (e.g. https://demo.valispace.com), username and password for authentication, or use the one line function:
-
-```python
-valispace_API = valispace.API(url='https://demo.valispace.com', username='demo_user', password='xxxxx')
-```
 
 Then use the Valispace API like this:
 
@@ -41,7 +37,7 @@ Then use the Valispace API like this:
 
 A dict of an entire data type:
 ```python
-all_valis = valispace_API.all_data(type='vali')
+all_valis = valispace.all_data(type='vali')
 ```
 The 'type' field can be: '*component*', '*vali*', '*textvali*' or '*tag*'
 
@@ -49,7 +45,9 @@ The 'type' field can be: '*component*', '*vali*', '*textvali*' or '*tag*'
 ```python
 all_vali_names = valispace.all_vali_names()
 ```
+
 A **Vali** with all properties:
+
 Argument | Example
 ------------- | -------------
 id | `valispace.get_vali(id=1)`
@@ -61,13 +59,17 @@ A **matrix**:
 matrix = valispace.get_matrix_str(id=57)
 ```
 
+
 A **Component** with all properties:
+
 Argument | Example
 ------------- | -------------
 id | `valispace.get_component(id=1)`
 unique_name | `valispace.get_component(unique_name='Blade')`
 
+
 A **Project** with all properties:
+
 Argument | Example
 ------------- | -------------
 id | `valispace.get_project(id=1)`
@@ -75,7 +77,9 @@ name | `valispace.get_project(name='Fan')`
 
 ### FILTER :
 
+
 List of **Valis** with the specified arguments:
+
 Argument | Example
 ------------- | -------------
 workspace_id | `valispace.filter_vali(workspace_id=1)`
@@ -88,7 +92,9 @@ tag_id | `valispace.filter_vali(tag_id=10)`
 tag_name | `valispace.filter_vali(tag_id='example_tag')`
 vali_marked_as_impacted | `valispace.filter_vali(vali_marked_as_impacted='10')`
 
+
 List of **Components** with the specified arguments:
+
 Argument | Example
 ------------- | -------------
 workspace_id | `valispace.filter_component(workspace_id=1)`
@@ -100,7 +106,9 @@ parent_name | `valispace.filter_component(parent_name='Fan')`
 tag_id | `valispace.filter_component(tag_id=10)`
 tag_name | `valispace.filter_component(tag_name='example_tag')`
 
+
 List of **Projects** with the specified arguments:
+
 Argument | Example
 ------------- | -------------
 workspace_id | `valispace.filter_project(workspace_id=1)`
@@ -120,16 +128,16 @@ valispace.update_matrix_formulas(57, [[2.1], [0.0], [0.0]])
 
 ### POST
 ```python
-valispace_API.post_data(type='vali', data=json_object)
+valispace.post_data(type='vali', data=json_object)
 ```
 
 The input data should be a single JSON object. Check the examples:
 ```python
 import valispace
-valispace_API = valispace.API()
+valispace = valispace.API()
 
 # -- Insert new Component --
-valispace_API.post_data(type='component', data="""{
+valispace.post_data(type='component', data="""{
         "name": "component_name",
         "description": "Insert description here",
         "parent": null,
@@ -138,7 +146,7 @@ valispace_API.post_data(type='component', data="""{
     }""")
 
 # -- Insert new Vali --
-valispace_API.post_data(type='vali', data="""{
+valispace.post_data(type='vali', data="""{
         "parent": 438,
         "shortname": "mass",
         "description": "",
@@ -154,14 +162,14 @@ valispace_API.post_data(type='vali', data="""{
     }""")
 
 # -- Insert new Textvali --
-valispace_API.post_data(type='textvali', data="""{
+valispace.post_data(type='textvali', data="""{
         "shortname": "Message",
         "text": "Message text",
         "parent": 438
     }""")
 
 # -- Insert new Tag --
-valispace_API.post_data(type='tag', data="""{
+valispace.post_data(type='tag', data="""{
         "name": "white-tag",
         "color": "#FFFFFF"
     }""")
