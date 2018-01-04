@@ -205,6 +205,58 @@ class API:
 		else:
 			print("VALISPACE-ERROR: The name you admitted is ambiguous, are you sure you used the Vali's full name?")
 
+	def get_vali_value(self, id):
+		"""
+		Returns the value of a vali.
+		:param id: ID of Vali.
+		:returns: int.
+		"""
+		try:
+			vali = self.get_vali(id)
+			return vali["value"]
+		except:
+			print("VALISPACE-ERROR: Could not retrieve Vali value.")
+
+	# def create_vali(parent=None, type=None, shortname=None, description=None, formula=None, margin_plus=None,
+	# 		margin_minus=None, minimum=None, maximum=None, reference=None, tags=None, data={}):
+	# 	"""
+	# 	Creates a new Vali.
+	# 	"""
+	# 	# TBD...
+
+	def update_vali(self, id, shortname=None, formula=None, data={}):
+		"""
+		Finds the Vali that corresponds to the input id
+		and updates it with the input shortname, formula and/or data.
+		"""
+		if not id:
+			print("VALISPACE-ERROR: You need to pass an ID.")
+			return
+
+		if not shortname and not formula and not data:
+			print("VALISPACE-ERROR: You have to pass data to update.")
+
+		# Write Vali.
+		if shortname:
+			data["shortname"] = shortname
+		if formula:
+			data["formula"] = formula
+		if not data:
+			print(
+				"You have not entered any valid fields. Here is a list of all fields that can be updated:\n{}."
+				.format(", ".join(self._writable_vali_fields))
+			)
+		url = self.valispace_login['url'] + "vali/{}/".format(id)
+		result = requests.patch(url, headers=self.get_request_headers(), data=data)
+		if result.status_code == 200:
+			print(
+				"Successfully updated Vali {} with the following fields:\n{}"
+				.format(vali["name"], stringified_new_vali_data)
+			)
+		else:
+			print("Invalid Request.")
+		return result
+
 	def get_component_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None,
 			parent_id=None, parent_name=None, tag_id=None, tag_name=None):
 		"""
@@ -299,6 +351,25 @@ class API:
 		else:
 			print("VALISPACE-ERROR: The name you admitted is ambiguous, are you sure you used the Component's full name?")
 
+	def get_project_list(self, workspace_id=None, workspace_name=None):
+		"""
+		Returns JSON with all the Projects that mach the input arguments.
+		Inputs are integers for IDs and strings for names.
+		:returns: JSON object.
+		"""
+		if type(workspace_id) != int:
+			print("VALISPACE-ERROR: workspace_id must be an integer.")
+			return
+
+		# Construct URL.
+		url = self.valispace_login['url'] + "project/?"
+		if workspace_id:
+			url += "workspace={}".format(workspace_id)
+		elif workspace_name:
+			url = self.__increment_url(url) + "workspace__name={}".format(workspace_name)
+		response = requests.get(url, headers=get_request_headers())
+		return response.json()
+
 	def get_project(self, id=None, name=None, workspace_id=None):
 		""" Returns JSON of a unique Project. Input can be id (int) or name (string) """
 
@@ -327,96 +398,14 @@ class API:
 
 		return response.json()
 
-	def filter_project(self, workspace_id=None, workspace_name=None):
-		""" Returns JSON with all the Projects that mach the input arguments.
-		Inputs are integers for IDs and strings for names."""
-		if workspace_id:
-			try:
-				workspace_id = int(workspace_id)
-			except:
-				print("VALISPACE-ERROR: Workspace id must be an integer")
-				return
-
-		# Check if no argument was passed
-		if workspace_id is None and workspace_name is None:
-
-			print("VALISPACE-ERROR: at least 1 argument expected")
-			return
-
-		# URL
-		url = self.valispace_login['url'] + "project/?"
-		if workspace_id:
-			url += "workspace=" + str(workspace_id)
-		elif workspace_name:
-			url = self.__increment_url(url) + "workspace__name=" + str(workspace_name)
-
-		headers = self.valispace_login['options']['Headers']
-		response = requests.get(url, headers=headers)
-
-		return response.json()
-
-	def get_vali_value(self, id=None, name=None):
-		""" Returns the value of a vali. """
-		try:
-			vali = self.get_vali(id=id, name=name)
-			return vali["value"]
-		except:
-			print("VALISPACE-ERROR: could not get value of Vali.")
-
-	# def create_vali(parent=None, type=None, shortname=None, description=None, formula=None, margin_plus=None,
-	# 		margin_minus=None, minimum=None, maximum=None, reference=None, tags=None, data={}):
-	# 	"""
-	# 	Creates a new Vali.
-	# 	"""
-	# 	# TBD...
-
-	def update_vali(self, id, shortname=None, formula=None, data={}):
-		"""
-		Finds the Vali that corresponds to the input id
-		and updates it with the input shortname, formula and/or data.
-		"""
-		if not id:
-			print("VALISPACE-ERROR: You need to pass an ID.")
-			return
-
-		if not shortname and not formula and not data:
-			print("VALISPACE-ERROR: You have to pass data to update.")
-
-		# Read Vali.
-		url = self.valispace_login['url'] + "vali/{}/".format(id)
-		vali = requests.get(url, headers=self.get_request_headers()).json()
-
-		# Write Vali.
-		new_vali_data = {}
-		stringified_new_vali_data = ""
-		if not formula is None:
-			data["formula"] = str(formula)
-		for k, v in data.items():
-			if k in self._writable_vali_fields:
-				new_vali_data[k] = v
-				stringified_new_vali_data += "  --> " + str(k) + " = " + str(v) + "\n"
-		result = requests.patch(url, headers=headers, data=new_vali_data)
-
-		print("STATUS CODE: ", result.status_code)
-
-		if new_vali_data == {}:
-			print(
-				"You have not entered any valid fields. Here is a list of fields to update:\n{}."
-				.format(", ".join(self._writable_vali_fields))
-			)
-		elif result.status_code == 200:
-			print(
-				"Successfully updated Vali {} with the following fields:\n{}"
-				.format(vali["name"], stringified_new_vali_data)
-			)
-		else:
-			print("Invalid Request.")
-
-		return result
-
 	def post_data(self, type=None, data={}):
-		""" Post new component/vali/textvali/tags with the input data
-		Data is expected to be a JSON string with some required fields like name"""
+		"""
+		Post new component/vali/textvali/tags with the input data
+		Data is expected to be a JSON string with some required fields like name.
+		:param type: type of object to create/update.
+		:param data: dict with key value pairs for the object attributes.
+		:returns: JSON object.
+		"""
 
 		# Check if no argument was passed
 		if data is None:
@@ -436,8 +425,7 @@ class API:
 		elif type is 'tag':
 			url = self.valispace_login['url'] + "tag/"
 
-		headers = self.valispace_login['options']['Headers']
-		result = requests.post(url, headers=headers, data=data)
+		result = requests.post(url, headers=self.get_request_headers(), data=data)
 
 		if result.status_code == 201:
 			print("Successfully updated Vali:\n" + str(data) + "\n")
@@ -451,62 +439,62 @@ class API:
 		return result.json()
 
 	def get_matrix(self, id):
-		""" Returns the correct Matrix. Input id. """
-
+		"""
+		Returns the correct Matrix.
+		:param id: ID of Matrix.
+		:returns: list of lists.
+		"""
 		url = self.valispace_login['url'] + "matrix/" + str(id) + "/"
-		headers = self.valispace_login['options']['Headers']
-		matrix_data = requests.get(url, headers=headers).json()
-
+		matrix_data = requests.get(url, headers=self.get_request_headers()).json()
 		try:
+			# TODO:
+			# T: there is probably a faster and more efficient way...
 			matrix = []
 			for row in range(matrix_data['number_of_rows']):
 				matrix.append([])
 				for col in range(matrix_data['number_of_columns']):
 					matrix[row].append(self.get_vali(matrix_data['cells'][row][col]))
-
 			return matrix
 		except KeyError:
 			print("VALISPACE-ERROR: Matrix with id {} not found.".format(id))
-			return
 		except:
 			print("VALISPACE-ERROR: Unknown error.")
 
 	def get_matrix_str(self, id):
-		""" Returns the correct Matrix. Input id. """
-
-		url = self.valispace_login['url'] + "matrix/" + str(id) + "/"
-		headers = self.valispace_login['options']['Headers']
-		matrix_data = requests.get(url, headers=headers).json()
-
+		"""
+		Returns the correct Matrix.
+		:param id: ID of Matrix.
+		:returns: list of lists.
+		"""
+		url = self.valispace_login['url'] + "matrix/{}/".format(id)
+		matrix_data = requests.get(url, headers=self.get_request_headers()).json()
 		try:
 			matrix = []
 			for row in range(matrix_data['number_of_rows']):
 				matrix.append([])
 				for col in range(matrix_data['number_of_columns']):
-					matrix[row].append({"vali": matrix_data['cells'][row][col], "value": self.get_vali(matrix_data['cells'][row][col])["value"]})
-
+					matrix[row].append({
+						"vali": matrix_data['cells'][row][col],
+						"value": self.get_vali(matrix_data['cells'][row][col])["value"],
+					})
 			return matrix
 		except KeyError:
 			print("VALISPACE-ERROR: Matrix with id {} not found.".format(id))
-			return
 		except:
 			print("VALISPACE-ERROR: Unknown error.")
 
 	def update_matrix_formulas(self, id, matrix):
-		""" Finds the Matrix that corresponds to the input id,
+		"""
+		Finds the Matrix that corresponds to the input id,
 		Finds each of the Valis that correspond to the vali id (contained in each cell of the matrix)
-		Updates the formula of each of the Valis with the formulas contained in each cell of the input matrix	"""
+		Updates the formula of each of the Valis with the formulas contained in each cell of the input matrix.
+		"""
+		# Read Matrix.
+		url = self.valispace_login['url'] + "matrix/{}/".format(id)
+		matrix_data = requests.get(url, headers=self.get_request_headers).json()
 
-		# Read Matrix
-		url = self.valispace_login['url'] + "matrix/" + str(id) + "/"
-		headers = self.valispace_login['options']['Headers']
-		matrix_data = requests.get(url, headers=headers).json()
-
-		# Check matrix dimensions
-		if not(
-			len(matrix) == matrix_data["number_of_rows"] and
-			len(matrix[0]) == matrix_data["number_of_columns"]
-		):
+		# Check matrix dimensions.
+		if not len(matrix) == matrix_data["number_of_rows"] and len(matrix[0]) == matrix_data["number_of_columns"]:
 			print('VALISPACE-ERROR: The dimensions of the local and the remote matrix do not match.')
 
 		# Update referenced valis in each matrix cell
@@ -514,19 +502,10 @@ class API:
 			for col in range(matrix_data['number_of_columns']):
 				self.update_vali(id=matrix_data['cells'][row][col], formula=matrix[row][col])
 
-	# Private methods
-	def __name_to_id(self, name):
-		url = self.valispace_login['url'] + "vali/?name=" + str(name)
-		headers = self.valispace_login['options']['Headers']
-		response = requests.get(url, headers=headers)
-		for vali in response.json():
-			return vali['id']
-
-	def __list_to_bullets(self, list):
-		return "  --> " + "\n  --> ".join(list) if list else ""
-
 	# Increment function to add multiple fields to url
 	def __increment_url(self, url):
+		# TODO:
+		# T: Replace this with a proper query param function...
 		if not url.endswith('?'):
-				url += "&"
+			url += "&"
 		return url
