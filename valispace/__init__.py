@@ -12,15 +12,13 @@ class API:
 	Defines REST API endpoints for Valispace.
 	"""
 
-	global _read_only_vali_fields
 	_read_only_vali_fields = [
 		'id', 'url', 'name', 'formatted_formula', 'value', 'uses_default_formula', 'totalmargin_plus',
 		'totalmargin_minus', 'wc_plus', 'wc_minus', 'calculated_valis', 'subscription_text', 'baseunit',
 		'subscribed', 'value_baseunit', 'type', 'type_name', 'old_value',
 	]
 
-	global _writeable_vali_fields
-	_writeable_vali_fields = [
+	_writable_vali_fields = [
 		'reference', 'margin_plus', 'margin_minus', 'unit',
 		'formula', 'description', 'parent', 'tags', 'shortname',
 		'minimum', 'maximum',
@@ -30,10 +28,10 @@ class API:
 		return self.valispace_login['options']['Headers']
 
 	def __init__(self, url=None, username=None, password=None):
-		""" Performs the password-based oAuth 2.0 login for read/write access. """
-
+		"""
+		Performs the password-based oAuth 2.0 login for read/write access.
+		"""
 		print("\nAuthenticating Valispace...\n")
-
 		if url is None:
 			url = raw_input('Your Valispace url: ').rstrip("/")
 		if username is None:
@@ -76,64 +74,286 @@ class API:
 		except:
 			print("VALISPACE-ERROR: Invalid credentials or url.")
 
-	def all_data(self, type=None):
-		""" Returns a dict of all component/vali/textvali/tags with their properties """
-		# Check if no argument was passed
-		if type is None:
-			print("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags)")
-			return
+	# def get_all_data(self, type=None):
+	# 	""" Returns a dict of all component/vali/textvali/tags with their properties """
+	# 	# Check if no argument was passed
+	# 	if type is None:
+	# 		print("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags)")
+	# 		return
+    #
+	# 	# URL
+	# 	if type is 'component':
+	# 		url = self.valispace_login['url'] + "component/"
+	# 	elif type is 'vali':
+	# 		url = self.valispace_login['url'] + "vali/"
+	# 	elif type is 'textvali':
+	# 		url = self.valispace_login['url'] + "textvali/"
+	# 	elif type is 'tag':
+	# 		url = self.valispace_login['url'] + "tag/"
+    #
+	# 	headers = self.valispace_login['options']['Headers']
+	# 	get_data = requests.get(url, headers=headers).json()
+    #
+	# 	return_dictionary = {}
+	# 	for data in get_data:
+	# 		return_dictionary[str(data["id"])] = data
+    #
+	# 	return return_dictionary
 
-		# URL
-		if type is 'component':
-			url = self.valispace_login['url'] + "component/"
-		elif type is 'vali':
-			url = self.valispace_login['url'] + "vali/"
-		elif type is 'textvali':
-			url = self.valispace_login['url'] + "textvali/"
-		elif type is 'tag':
-			url = self.valispace_login['url'] + "tag/"
+	def get_vali_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None, parent_id=None,
+			parent_name=None, tag_id=None, tag_name=None, vali_marked_as_impacted=None):
+		"""
+		Returns JSON with all the Valis that mach the input arguments.
+		Inputs are integers for IDs or vali_marked_as_impacted strings, and strings for names.
+		Use the component 'unique_name' (not the 'name') in the parent_name argument.
+		"""
+		if workspace_id:
+			try:
+				workspace_id = int(workspace_id)
+			except:
+				print("VALISPACE-ERROR: Workspace id must be an integer")
+				return
 
-		headers = self.valispace_login['options']['Headers']
-		get_data = requests.get(url, headers=headers).json()
+		if project_id:
+			try:
+				project_id = int(project_id)
+			except:
+				print("VALISPACE-ERROR: Project id must be an integer")
+				return
 
-		return_dictionary = {}
-		for data in get_data:
-			return_dictionary[str(data["id"])] = data
+		if parent_id:
+			try:
+				parent_id = int(parent_id)
+			except:
+				print("VALISPACE-ERROR: Parent id must be an integer")
+				return
 
-		return return_dictionary
+		if tag_id:
+			try:
+				tag_id = int(tag_id)
+			except:
+				print("VALISPACE-ERROR: Tag id must be an integer")
+				return
 
-	def all_vali_names(self):
-		""" Returns a list of all Valis with only names and ids """
+		if vali_marked_as_impacted:
+			try:
+				vali_marked_as_impacted = int(vali_marked_as_impacted)
+			except:
+				print("VALISPACE-ERROR: Vali_marked_as_impacted must be an integer")
+				return
+
+		# Construct URL.
+		url = self.valispace_login['url'] + "vali/?"
+		if workspace_id:
+			url += "parent__project__workspace={}".format(workspace_id)
+		elif workspace_name:
+			url = self.__increment_url(url) + "parent__project__workspace__name={}".format(workspace_name)
+		elif project_id:
+			url = self.__increment_url(url) + "parent__project__id={}".format(project_id)
+		elif project_name:
+			url = self.__increment_url(url) + "parent__project__name={}".format(project_name)
+		elif parent_id:
+			url = self.__increment_url(url) + "parent__id={}".format(parent_id)
+		elif parent_name:
+			url = self.__increment_url(url) + "parent__unique_name={}".format(parent_name)
+		elif tag_id:
+			url = self.__increment_url(url) + "tags__id={}".format(tag_id)
+		elif tag_name:
+			url = self.__increment_url(url) + "tags__name={}".format(tag_name)
+		elif vali_marked_as_impacted:
+			url = self.__increment_url(url) + "valis_marked_as_impacted={}".format(vali_marked_as_impacted)
+
+		response = requests.get(url, headers=get_request_headers())
+		return response.json()
+
+	def get_vali_names(self):
+		"""
+		Returns a list of all Valis with only names and IDs.
+		:returns: JSON.
+		"""
 		url = self.valispace_login['url'] + "valinames/"
-		headers = self.valispace_login['options']['Headers']
-		valinames = requests.get(url, headers=headers)
+		valinames = requests.get(url, headers=get_request_headers())
 		return valinames.json()
 
-	def get_vali(self, id=None, name=None):
-		""" Returns the correct Vali. Input can be id or name. """
+	def get_vali(self, id):
+		"""
+		Returns JSON of a unique Vali.
+		:param id: ID of the Vali to fetch.
+		:returns: JSON object.
+		"""
+		if type(id) != int:
+			print("VALISPACE-ERROR: The function requires an ID (int) as parameter.")
+		url = self.valispace_login['url'] + "vali/{}/".format(id)
+		return requests.get(url, headers=self.get_request_headers()).json()
+
+	def get_vali_by_name(self, name):
+		"""
+		Returns JSON of a unique Vali.
+		:param name: unique name of the vali.
+		:returns: JSON object.
+		"""
+		if type(name) != str:
+			print("VALISPACE-ERROR: The function requires a valid Vali name (str) as parameter.")
+
+		url = self.valispace_login['url'] + "vali/?name={}".format(name)
+		json_response = requests.get(url, headers=self.get_request_headers()).json()
+		num_results = len(json_response)
+		if num_results == 1:
+			return json_response
+		if num_results == 0:
+			print("VALISPACE-ERROR: A Vali with this name does not exist. Please check for typos.")
+		else:
+			print("VALISPACE-ERROR: The name you admitted is ambiguous, are you sure you used the Vali's full name?")
+
+	def get_component_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None,
+			parent_id=None, parent_name=None, tag_id=None, tag_name=None):
+		"""
+		Returns JSON with all the Components that match the input arguments.
+		Inputs are integers for IDs and strings for names.
+		Use the component 'unique_name' (not the 'name') in the parent_name argument.
+
+		:returns: JSON object.
+		"""
+
+		if workspace_id:
+			try:
+				workspace_id = int(workspace_id)
+			except:
+				print("VALISPACE-ERROR: Workspace id must be an integer")
+				return
+
+		if project_id:
+			try:
+				project_id = int(project_id)
+			except:
+				print("VALISPACE-ERROR: Project id must be an integer")
+				return
+
+		if parent_id:
+			try:
+				parent_id = int(parent_id)
+			except:
+				print("VALISPACE-ERROR: Parent id must be an integer")
+				return
+
+		if tag_id:
+			try:
+				tag_id = int(tag_id)
+			except:
+				print("VALISPACE-ERROR: Tag id must be an integer")
+				return
+
+		# Construct URL.
+		"url = self.valispace_login['url'] + "component/?"
+		if workspace_id:
+			url += "project__workspace={}".format(workspace_id)
+		elif workspace_name:
+			url = self.__increment_url(url) + "workspace__name={}".format(workspace_name)
+		elif project_id:
+			url = self.__increment_url(url) + "project__id={}".format(project_id)
+		elif project_name:
+			url = self.__increment_url(url) + "project__name={}".format(project_name)
+		elif parent_id:
+			url = self.__increment_url(url) + "parent={}".format(parent_id)
+		elif parent_name:
+			url = self.__increment_url(url) + "parent__unique_name={}".format(parent_name)
+		elif tag_id:
+			url = self.__increment_url(url) + "tags__id={}".format(tag_id)
+		elif tag_name:
+			url = self.__increment_url(url) + "tags__name={}".format(tag_name)
+
+		response = requests.get(url, headers=get_request_headers())
+		return response.json()
+
+	def get_component(self, id):
+		"""
+		Returns JSON of a unique Component.
+		:param id: ID of the component to fetch.
+		:returns: JSON object.
+		"""
+		if type(id) != int:
+			print("VALISPACE-ERROR: The function requires an id (int) as argument.")
+			return
+
+		url = self.valispace_login['url'] + "component/{}/".format(id)
+		response = requests.get(url, headers=get_request_headers())
+		return response.json()
+
+	def get_component_by_name(self, name):
+		"""
+		Returns JSON of a unique Component.
+		:param name: unique name of the component to fetch.
+		:returns: JSON object.
+		"""
+		if type(name) != str:
+			print("VALISPACE-ERROR: The function requires a component unique name (str) as argument.")
+			return
+
+		url = self.valispace_login['url'] + "component/?unique_name={}".format(name)
+		json_response = requests.get(url, headers=get_request_headers()).json()
+		num_results = len(json_response)
+		if num_results == 1:
+			return json_response
+		if num_results == 0:
+			print("VALISPACE-ERROR: A Component with this name does not exist. Please check for typos.")
+		else:
+			print("VALISPACE-ERROR: The name you admitted is ambiguous, are you sure you used the Component's full name?")
+
+	def get_project(self, id=None, name=None, workspace_id=None):
+		""" Returns JSON of a unique Project. Input can be id (int) or name (string) """
+
 		if id:
 			try:
 				id = int(id)
-				url = self.valispace_login['url'] + "vali/{}/".format(id)
-				return requests.get(url, headers=self.get_request_headers()).json()
 			except:
-				print("VALISPACE-ERROR: Vali id must be an integer.")
+				print("VALISPACE-ERROR: Vali id must be an integer")
 				return
 
-		if name:
-			url = self.valispace_login['url'] + "vali/?name={}".format(name)
-			json_response = requests.get(url, headers=self.get_request_headers()).json()
-			num_results = len(json_response)
-			if num_results == 0:
-				print("A Vali with this name does not exist.")
-				return
-			elif num_results == 1:
-				return json_response
-			else:
-				print("The name you admitted is ambiguous, are you sure you used the Vali's full name?")
+		# Check if no argument was passed
+		if id is None and name is None:
+			print("VALISPACE-ERROR: 1 argument expected (name or id)")
+			return
+
+		# Access API
+		# URL
+		url = self.valispace_login['url'] + "project/?"
+		if id:
+			url += "id=" + str(id)
+		elif name:
+			url += "name=" + str(name)
+
+		headers = self.valispace_login['options']['Headers']
+		response = requests.get(url, headers=headers)
+
+		return response.json()
+
+	def filter_project(self, workspace_id=None, workspace_name=None):
+		""" Returns JSON with all the Projects that mach the input arguments.
+		Inputs are integers for IDs and strings for names."""
+		if workspace_id:
+			try:
+				workspace_id = int(workspace_id)
+			except:
+				print("VALISPACE-ERROR: Workspace id must be an integer")
 				return
 
-		print("VALISPACE-ERROR: 1 argument expected (name or id).")
+		# Check if no argument was passed
+		if workspace_id is None and workspace_name is None:
+
+			print("VALISPACE-ERROR: at least 1 argument expected")
+			return
+
+		# URL
+		url = self.valispace_login['url'] + "project/?"
+		if workspace_id:
+			url += "workspace=" + str(workspace_id)
+		elif workspace_name:
+			url = self.__increment_url(url) + "workspace__name=" + str(workspace_name)
+
+		headers = self.valispace_login['options']['Headers']
+		response = requests.get(url, headers=headers)
+
+		return response.json()
 
 	def get_vali_value(self, id=None, name=None):
 		""" Returns the value of a vali. """
@@ -143,28 +363,28 @@ class API:
 		except:
 			print("VALISPACE-ERROR: could not get value of Vali.")
 
-	# def create_vali(parent_id=None, type=None, shortname=None, description=None, formula=None, \
-	# 		margin_plus=None, margin_minus=None, minimum=None, maximum=None, reference=None, tags=None):
+	# def create_vali(parent=None, type=None, shortname=None, description=None, formula=None, margin_plus=None,
+	# 		margin_minus=None, minimum=None, maximum=None, reference=None, tags=None, data={}):
 	# 	"""
 	# 	Creates a new Vali.
 	# 	"""
+	# 	# TBD...
 
-	def update_vali(self, id=None, name=None, formula=None, data={}):
-		""" Finds the Vali that corresponds to the input id (or name) and updates it with the input formula (or data) """
-
-		# Check if no argument was passed.
-		if id is None and name is None:
-			print("VALISPACE-ERROR: 1 argument expected (name or id).")
+	def update_vali(self, id, shortname=None, formula=None, data={}):
+		"""
+		Finds the Vali that corresponds to the input id
+		and updates it with the input shortname, formula and/or data.
+		"""
+		if not id:
+			print("VALISPACE-ERROR: You need to pass an ID.")
 			return
 
-		# Check if name argument was passed.
-		if id is None:
-			id = self.get_vali(name=name)["id"]
+		if not shortname and not formula and not data:
+			print("VALISPACE-ERROR: You have to pass data to update.")
 
 		# Read Vali.
 		url = self.valispace_login['url'] + "vali/{}/".format(id)
-		headers = self.valispace_login['options']['Headers']
-		vali = requests.get(url, headers=headers).json()
+		vali = requests.get(url, headers=self.get_request_headers()).json()
 
 		# Write Vali.
 		new_vali_data = {}
@@ -172,7 +392,7 @@ class API:
 		if not formula is None:
 			data["formula"] = str(formula)
 		for k, v in data.items():
-			if k in _writeable_vali_fields:
+			if k in self._writable_vali_fields:
 				new_vali_data[k] = v
 				stringified_new_vali_data += "  --> " + str(k) + " = " + str(v) + "\n"
 		result = requests.patch(url, headers=headers, data=new_vali_data)
@@ -182,7 +402,7 @@ class API:
 		if new_vali_data == {}:
 			print(
 				"You have not entered any valid fields. Here is a list of fields to update:\n{}."
-				.format(", ".join(self._writeable_vali_fields))
+				.format(", ".join(self._writable_vali_fields))
 			)
 		elif result.status_code == 200:
 			print(
@@ -226,10 +446,9 @@ class API:
 		elif result.status_code == 500:
 			print("The server encountered an unexpected condition which prevented it from fulfilling the request (status code: 500)\n")
 		else:
-			print("Invalid Request (status code: ",result.status_code,"): ",result.content,"\n")
+			print("Invalid Request (status code: ", result.status_code, "): ", result.content, "\n")
 
 		return result.json()
-
 
 	def get_matrix(self, id):
 		""" Returns the correct Matrix. Input id. """
@@ -294,3 +513,20 @@ class API:
 		for row in range(matrix_data['number_of_rows']):
 			for col in range(matrix_data['number_of_columns']):
 				self.update_vali(id=matrix_data['cells'][row][col], formula=matrix[row][col])
+
+	# Private methods
+	def __name_to_id(self, name):
+		url = self.valispace_login['url'] + "vali/?name=" + str(name)
+		headers = self.valispace_login['options']['Headers']
+		response = requests.get(url, headers=headers)
+		for vali in response.json():
+			return vali['id']
+
+	def __list_to_bullets(self, list):
+		return "  --> " + "\n  --> ".join(list) if list else ""
+
+	# Increment function to add multiple fields to url
+	def __increment_url(self, url):
+		if not url.endswith('?'):
+				url += "&"
+		return url

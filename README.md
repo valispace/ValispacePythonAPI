@@ -4,7 +4,7 @@ The Valispace python API lets you access and update objects in your Valispace de
 
 ## Getting Started
 
-To make use of the Valispace API you must have a valid login to any Valispace deployment. If you don't have an account, you can get a demo account at [demo.valispace.com](https://demo.valispace.com). You can also find further documentation in [docs.valispace.com](http://www.valispace.com/docs/).
+To make use of the Valispace API you must have a valid login to any Valispace deployment. If you don't have an account, you can get a demo account at [demo.vali.com](https://demo.vali.com). You can also find further documentation in [docs.vali.com](http://www.vali.com/docs/).
 
 ### Installing
 
@@ -14,43 +14,125 @@ Install the Valispace python API with pip:
 pip install valispace
 ```
 
-### Using the API
+### Import the API
 
-**Import valispace API:**
+Import valispace API module in a python script:
 
-```
+```python
 import valispace
 ```
 
 **And initialize with:**
 
 ```
-vali = valispace.API()
+vali = vali.API()
 ```
 
-At this step you will need to enter your Valispace url (e.g. https://demo.valispace.com), username and password for authentication.
+At this step you will need to enter your Valispace url (e.g. https://demo.vali.com), username and password for authentication, or use the one line function:
 
 Then use the Valispace API like this:
 
-**Get a dict of an entire data type:**
+### GET :
 
-```
+A dict of an entire data type:
+```python
 all_valis = vali.all_data(type='vali')
 ```
+The 'type' field can be: '*component*', '*vali*', '*textvali*' or '*tag*'
 
-The type field can be: '*component*', '*vali*', '*textvali*' or '*tag*'
-
-**Post new data:**
-
+**All Vali** ids and names:
+```python
+all_vali_names = vali.all_vali_names()
 ```
-vali.post_data(type='vali', data=JSON)
 
+A **Vali** with all properties:
+
+Argument | Example
+------------- | -------------
+id | `vali.get_vali(id=1)`
+name | `vali.get_vali(name='Fan.Mass')`
+
+A **matrix**:
+
+```python
+matrix = vali.get_matrix_str(id=57)
+```
+
+A **Component** with all properties:
+
+Argument | Example
+------------- | -------------
+id | `vali.get_component(id=1)`
+unique_name | `vali.get_component(unique_name='Blade')`
+
+
+A **Project** with all properties:
+
+Argument | Example
+------------- | -------------
+id | `vali.get_project(id=1)`
+name | `vali.get_project(name='Fan')`
+
+### FILTER :
+
+
+List of **Valis** with the specified arguments:
+
+Argument | Example
+------------- | -------------
+workspace_id | `vali.filter_vali(workspace_id=1)`
+workspace_name | `vali.filter_vali(workspace_name='Default Workspace')`
+project_id | `vali.filter_vali(project_id=1)`
+project_name | `vali.filter_vali(project_name='Saturn_V')`
+parent_id | `vali.filter_vali(parent_id=1)`
+parent_name | `vali.filter_vali(parent_name='Fan')`
+tag_id | `vali.filter_vali(tag_id=10)`
+tag_name | `vali.filter_vali(tag_id='example_tag')`
+vali_marked_as_impacted | `vali.filter_vali(vali_marked_as_impacted='10')`
+
+
+List of **Components** with the specified arguments:
+
+Argument | Example
+------------- | -------------
+workspace_id | `vali.filter_component(workspace_id=1)`
+workspace_name | `vali.filter_component(workspace_name='Default Workspace')`
+project_id | `vali.filter_component(project_id=1)`
+project_name | `vali.filter_component(project_name='Fan')`
+parent_id | `vali.filter_component(parent_id=1)`
+parent_name | `vali.filter_component(parent_name='Fan')`
+tag_id | `vali.filter_component(tag_id=10)`
+tag_name | `vali.filter_component(tag_name='example_tag')`
+
+
+List of **Projects** with the specified arguments:
+
+Argument | Example
+------------- | -------------
+workspace_id | `vali.filter_project(workspace_id=1)`
+workspace_name | `vali.filter_project(workspace_name='Default Workspace')`
+
+### UPDATE:
+A Vali formula:
+```python
+vali.update_vali(id=50, formula=str(value + 1))
+```
+
+A matrix:
+```python
+vali.update_matrix_formulas(57, [[2.1], [0.0], [0.0]])
+```
+
+
+### POST
+```python
+vali.post_data(type='vali', data=json_object)
 ```
 
 The input data should be a single JSON object. Check the examples:
-```
+```python
 import valispace
-valispace = valispace.API()
+valispace = vali.API()
 
 # -- Insert new Component --
 vali.post_data(type='component', data="""{
@@ -58,7 +140,6 @@ vali.post_data(type='component', data="""{
         "description": "Insert description here",
         "parent": null,
         "project": 25,
-        "valis": [],
         "tags": [30, 31, 32]
     }""")
 
@@ -69,15 +150,11 @@ vali.post_data(type='vali', data="""{
         "description": "",
         "unit": "kg",
         "formula": "5",
-        "wc_minus": "5",
-        "wc_plus": "5",
         "minimum": null,
         "maximum": null,
         "margin_minus": "0",
         "margin_plus": "0",
-        "tags": [],
         "uses_default_formula": false,
-        "valis_used": [],
         "reference": "",
         "type": null
     }""")
