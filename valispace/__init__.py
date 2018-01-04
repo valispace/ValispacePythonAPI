@@ -26,19 +26,19 @@ class API:
 
 		print("--- Authenticating Valispace ---")
 
-		# if url is None:
-		# 	url = raw_input('Your Valispace url: ').rstrip("/")
-		# if username is None:
-		# 	username = raw_input('Username: ')
-		# if password is None:
-		# 	password = getpass.getpass('Password: ')
-
 		if url is None:
-			url = "http://192.168.99.100:8000"
+			url = raw_input('Your Valispace url: ').rstrip("/")
 		if username is None:
-			username = "admin"
+			username = raw_input('Username: ')
 		if password is None:
-			password = "844bct"
+			password = getpass.getpass('Password: ')
+
+		# if url is None:
+		# 	url = ""
+		# if username is None:
+		# 	username = ""
+		# if password is None:
+		# 	password = ""
 
 		# TODO - check for SSL connection, before sending the username and password ###
 
@@ -102,7 +102,7 @@ class API:
 
 	def get_vali(self, id=None, name=None):
 		""" Returns JSON of a unique Vali. Input can be id (int) or name (string).
-		Use the full name (not the shortname) for the name argument."""
+		Valis name need to have the full tree path in order the names to be unique """
 
 		if id:
 			try:
@@ -124,7 +124,6 @@ class API:
 
 		# Access API
 		headers = self.valispace_login['options']['Headers']
-
 		response = requests.get(url, headers=headers)
 
 		return response.json()
@@ -132,7 +131,7 @@ class API:
 	def filter_vali(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None, parent_id=None,
 																	parent_name=None, tag_id=None, tag_name=None, vali_marked_as_impacted=None):
 		""" Returns JSON with all the Valis that mach the input arguments.
-		Inputs are integers for IDs or vali_marked_as_impacted strings, and strings for names.
+		Inputs are integers for IDs or vali_marked_as_impacted, and strings for names.
 		Use the component 'unique_name' (not the 'name') in the parent_name argument."""
 
 		if workspace_id:
@@ -182,23 +181,24 @@ class API:
 		url = self.valispace_login['url'] + "vali/?"
 		if workspace_id:
 			url += "parent__project__workspace=" + str(workspace_id)
-		elif workspace_name:
+		if workspace_name:
 			url = self.__increment_url(url) + "parent__project__workspace__name=" + str(workspace_name)
-		elif project_id:
+		if project_id:
 			url = self.__increment_url(url) + "parent__project__id=" + str(project_id)
-		elif project_name:
+		if project_name:
 			url = self.__increment_url(url) + "parent__project__name=" + str(project_name)
-		elif parent_id:
+		if parent_id:
 			url = self.__increment_url(url) + "parent__id=" + str(parent_id)
-		elif parent_name:
+		if parent_name:
 			url = self.__increment_url(url) + "parent__unique_name=" + str(parent_name)
-		elif tag_id:
+		if tag_id:
 			url = self.__increment_url(url) + "tags__id=" + str(tag_id)
-		elif tag_name:
+		if tag_name:
 			url = self.__increment_url(url) + "tags__name=" + str(tag_name)
-		elif vali_marked_as_impacted:
+		if vali_marked_as_impacted:
 			url = self.__increment_url(url) + "valis_marked_as_impacted=" + str(vali_marked_as_impacted)
 
+		print url
 		headers = self.valispace_login['options']['Headers']
 		response = requests.get(url, headers=headers)
 
@@ -277,19 +277,19 @@ class API:
 		url = self.valispace_login['url'] + "component/?"
 		if workspace_id:
 			url += "project__workspace=" + str(workspace_id)
-		elif workspace_name:
+		if workspace_name:
 			url = self.__increment_url(url) + "workspace__name=" + str(workspace_name)
-		elif project_id:
+		if project_id:
 			url = self.__increment_url(url) + "project__id=" + str(project_id)
-		elif project_name:
+		if project_name:
 			url = self.__increment_url(url) + "project__name=" + str(project_name)
-		elif parent_id:
+		if parent_id:
 			url = self.__increment_url(url) + "parent=" + str(parent_id)
-		elif parent_name:
+		if parent_name:
 			url = self.__increment_url(url) + "parent__unique_name=" + str(parent_name)
-		elif tag_id:
+		if tag_id:
 			url = self.__increment_url(url) + "tags__id=" + str(tag_id)
-		elif tag_name:
+		if tag_name:
 			url = self.__increment_url(url) + "tags__name=" + str(tag_name)
 
 		headers = self.valispace_login['options']['Headers']
@@ -345,7 +345,7 @@ class API:
 		url = self.valispace_login['url'] + "project/?"
 		if workspace_id:
 			url += "workspace=" + str(workspace_id)
-		elif workspace_name:
+		if workspace_name:
 			url = self.__increment_url(url) + "workspace__name=" + str(workspace_name)
 
 		headers = self.valispace_login['options']['Headers']
