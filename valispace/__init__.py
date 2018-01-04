@@ -163,7 +163,7 @@ class API:
 		elif vali_marked_as_impacted:
 			url = self.__increment_url(url) + "valis_marked_as_impacted={}".format(vali_marked_as_impacted)
 
-		response = requests.get(url, headers=get_request_headers())
+		response = requests.get(url, headers=self.get_request_headers())
 		return response.json()
 
 	def get_vali_names(self):
@@ -296,7 +296,7 @@ class API:
 				return
 
 		# Construct URL.
-		"url = self.valispace_login['url'] + "component/?"
+		url = self.valispace_login['url'] + "component/?"
 		if workspace_id:
 			url += "project__workspace={}".format(workspace_id)
 		elif workspace_name:
