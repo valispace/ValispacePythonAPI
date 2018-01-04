@@ -3,14 +3,13 @@ from setuptools import setup, find_packages
 setup(
     name='valispace',
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
-    install_requires=['getpass', 'json', 'requests'],
+    install_requires=['requests'],
     version='0.1',
     description='Valispace Python API',
     author='Valispace',
     author_email='contact-us@valispace.com',
     license='MIT',
-    url='https://github.com/valispace/ValispacePythonAPI',  # use the URL to the github repo
-    # download_url='https://github.com/valispace/ValispacePythonAPI/archive/0.1.tar.gz',
-    keywords=[],  # arbitrary keywords
+    url='https://github.com/valispace/ValispacePythonAPI',
+    keywords='hardware engineering satellites rockets space technology',
     classifiers=[],
 )

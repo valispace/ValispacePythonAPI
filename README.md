@@ -25,7 +25,7 @@ import valispace
 **And initialize with:**
 
 ```
-valispace = valispace.API()
+vali = valispace.API()
 ```
 
 At this step you will need to enter your Valispace url (e.g. https://demo.valispace.com), username and password for authentication.
@@ -35,7 +35,7 @@ Then use the Valispace API like this:
 **Get a dict of an entire data type:**
 
 ```
-all_valis = valispace.all_data(type='vali')
+all_valis = vali.all_data(type='vali')
 ```
 
 The type field can be: '*component*', '*vali*', '*textvali*' or '*tag*'
@@ -43,7 +43,7 @@ The type field can be: '*component*', '*vali*', '*textvali*' or '*tag*'
 **Post new data:**
 
 ```
-valispace.post_data(type='vali', data=JSON)
+vali.post_data(type='vali', data=JSON)
 
 ```
 
@@ -53,7 +53,7 @@ import valispace
 valispace = valispace.API()
 
 # -- Insert new Component --
-valispace.post_data(type='component', data="""{
+vali.post_data(type='component', data="""{
         "name": "component_name",
         "description": "Insert description here",
         "parent": null,
@@ -63,7 +63,7 @@ valispace.post_data(type='component', data="""{
     }""")
 
 # -- Insert new Vali --
-valispace.post_data(type='vali', data="""{
+vali.post_data(type='vali', data="""{
         "parent": 438,
         "shortname": "mass",
         "description": "",
@@ -83,14 +83,14 @@ valispace.post_data(type='vali', data="""{
     }""")
 
 # -- Insert new Textvali --
-valispace.post_data(type='textvali', data="""{
+vali.post_data(type='textvali', data="""{
         "shortname": "Message",
         "text": "Message text",
         "parent": 438
     }""")
 
 # -- Insert new Tag --
-valispace.post_data(type='tag', data="""{
+vali.post_data(type='tag', data="""{
         "name": "white-tag",
         "color": "#FFFFFF"
     }""")
@@ -101,38 +101,38 @@ valispace.post_data(type='tag', data="""{
 
 **Get all Vali ids and names:**
 ```
-all_vali_names = valispace.all_vali_names()
+all_vali_names = vali.all_vali_names()
 ```
 
 **Get a Vali with all properties:**
 
 ```
-a = valispace.get_vali(id=50)
-b = valispace.get_vali(name="Fan.Mass")
+a = vali.get_vali(id=50)
+b = vali.get_vali(name="Fan.Mass")
 ```
 
 **Get the value of a Vali:**
 
 ```
-value = valispace.get_value(id=50)
+value = vali.get_vali_value(id=50)
 ```
 
 **Update a Vali formula:**
 
 ```
-valispace.update_vali(id=50, formula=str(value + 1))
+vali.update_vali(id=50, formula=str(value + 1))
 ```
 
 **Get a matrix:**
 
 ```
-matrix = valispace.get_matrix_str(id=57)
+matrix = vali.get_matrix_str(id=57)
 ```
 
 **Update a matrix:**
 
 ```
-valispace.update_matrix_formulas(57, [[2.1], [0.0], [0.0]])
+vali.update_matrix_formulas(57, [[2.1], [0.0], [0.0]])
 ```
 
 <!-- ## Contributing
