@@ -145,27 +145,23 @@ class API:
 		url = self.valispace_login['url'] + "vali/?"
 		if workspace_id:
 			url += "parent__project__workspace={}".format(workspace_id)
-		elif workspace_name:
+		if workspace_name:
 			url = self.__increment_url(url) + "parent__project__workspace__name={}".format(workspace_name)
-		elif project_id:
+		if project_id:
 			url = self.__increment_url(url) + "parent__project__id={}".format(project_id)
-		elif project_name:
+		if project_name:
 			url = self.__increment_url(url) + "parent__project__name={}".format(project_name)
-		elif parent_id:
+		if parent_id:
 			url = self.__increment_url(url) + "parent__id={}".format(parent_id)
-		elif parent_name:
+		if parent_name:
 			url = self.__increment_url(url) + "parent__unique_name={}".format(parent_name)
-		elif tag_id:
+		if tag_id:
 			url = self.__increment_url(url) + "tags__id={}".format(tag_id)
-		elif tag_name:
+		if tag_name:
 			url = self.__increment_url(url) + "tags__name={}".format(tag_name)
-		elif vali_marked_as_impacted:
+		if vali_marked_as_impacted:
 			url = self.__increment_url(url) + "valis_marked_as_impacted={}".format(vali_marked_as_impacted)
-
-		print(url)
-
 		response = requests.get(url, headers=self.get_request_headers())
-		print(response.content)
 		return response.json()
 
 	def get_vali_names(self, project_name=None):
