@@ -74,31 +74,32 @@ class API:
 		except:
 			print("VALISPACE-ERROR: Invalid credentials or url.")
 
-	# def get_all_data(self, type=None):
-	# 	""" Returns a dict of all component/vali/textvali/tags with their properties """
-	# 	# Check if no argument was passed
-	# 	if type is None:
-	# 		print("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags)")
-	# 		return
-    #
-	# 	# URL
-	# 	if type is 'component':
-	# 		url = self.valispace_login['url'] + "component/"
-	# 	elif type is 'vali':
-	# 		url = self.valispace_login['url'] + "vali/"
-	# 	elif type is 'textvali':
-	# 		url = self.valispace_login['url'] + "textvali/"
-	# 	elif type is 'tag':
-	# 		url = self.valispace_login['url'] + "tag/"
-    #
-	# 	headers = self.valispace_login['options']['Headers']
-	# 	get_data = requests.get(url, headers=headers).json()
-    #
-	# 	return_dictionary = {}
-	# 	for data in get_data:
-	# 		return_dictionary[str(data["id"])] = data
-    #
-	# 	return return_dictionary
+	def get_all_data(self, type=None):
+		"""
+		Returns a dict of all component/vali/textvali/tags with their properties.
+		"""
+		# Check if no argument was passed.
+		if type is None:
+			print("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags)")
+			return
+
+		# URL
+		if type is 'component':
+			url = self.valispace_login['url'] + "component/"
+		elif type is 'vali':
+			url = self.valispace_login['url'] + "vali/"
+		elif type is 'textvali':
+			url = self.valispace_login['url'] + "textvali/"
+		elif type is 'tag':
+			url = self.valispace_login['url'] + "tag/"
+
+		get_data = requests.get(url, headers=self.get_request_headers()).json()
+
+		return_dictionary = {}
+		for data in get_data:
+			return_dictionary[str(data["id"])] = data
+
+		return return_dictionary
 
 	def get_vali_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None, parent_id=None,
 			parent_name=None, tag_id=None, tag_name=None, vali_marked_as_impacted=None):
@@ -172,7 +173,7 @@ class API:
 		:returns: JSON.
 		"""
 		url = self.valispace_login['url'] + "valinames/"
-		valinames = requests.get(url, headers=get_request_headers())
+		valinames = requests.get(url, headers=self.get_request_headers())
 		return valinames.json()
 
 	def get_vali(self, id):
@@ -314,7 +315,7 @@ class API:
 		elif tag_name:
 			url = self.__increment_url(url) + "tags__name={}".format(tag_name)
 
-		response = requests.get(url, headers=get_request_headers())
+		response = requests.get(url, headers=self.get_request_headers())
 		return response.json()
 
 	def get_component(self, id):
@@ -328,7 +329,7 @@ class API:
 			return
 
 		url = self.valispace_login['url'] + "component/{}/".format(id)
-		response = requests.get(url, headers=get_request_headers())
+		response = requests.get(url, headers=self.get_request_headers())
 		return response.json()
 
 	def get_component_by_name(self, name):
@@ -342,7 +343,7 @@ class API:
 			return
 
 		url = self.valispace_login['url'] + "component/?unique_name={}".format(name)
-		json_response = requests.get(url, headers=get_request_headers()).json()
+		json_response = requests.get(url, headers=self.get_request_headers()).json()
 		num_results = len(json_response)
 		if num_results == 1:
 			return json_response
@@ -357,46 +358,54 @@ class API:
 		Inputs are integers for IDs and strings for names.
 		:returns: JSON object.
 		"""
-		if type(workspace_id) != int:
-			print("VALISPACE-ERROR: workspace_id must be an integer.")
-			return
-
 		# Construct URL.
 		url = self.valispace_login['url'] + "project/?"
 		if workspace_id:
+			if type(workspace_id) != int:
+				print("VALISPACE-ERROR: workspace_id must be an integer.")
+				return
 			url += "workspace={}".format(workspace_id)
 		elif workspace_name:
+			if type(workspace_id) != str:
+				print("VALISPACE-ERROR: workspace_name must be a string.")
+				return
 			url = self.__increment_url(url) + "workspace__name={}".format(workspace_name)
-		response = requests.get(url, headers=get_request_headers())
+		response = requests.get(url, headers=self.get_request_headers())
 		return response.json()
 
-	def get_project(self, id=None, name=None, workspace_id=None):
-		""" Returns JSON of a unique Project. Input can be id (int) or name (string) """
-
-		if id:
-			try:
-				id = int(id)
-			except:
-				print("VALISPACE-ERROR: Vali id must be an integer")
-				return
-
-		# Check if no argument was passed
-		if id is None and name is None:
-			print("VALISPACE-ERROR: 1 argument expected (name or id)")
+	def get_project(self, id):
+		"""
+		Retrieve a Project via ID.
+		:param id: ID of the project.
+		:returns: JSON object.
+		"""
+		if type(id) != int:
+			print("VALISPACE-ERROR: The function requires an id (int) as argument.")
 			return
 
-		# Access API
-		# URL
-		url = self.valispace_login['url'] + "project/?"
-		if id:
-			url += "id=" + str(id)
-		elif name:
-			url += "name=" + str(name)
-
-		headers = self.valispace_login['options']['Headers']
-		response = requests.get(url, headers=headers)
-
+		# Construct URL.
+		url = self.valispace_login['url'] + "project/{}/".format(id)
+		response = requests.get(url, headers=self.get_request_headers())
 		return response.json()
+
+	def get_project_by_name(self, name):
+		"""
+		Retrieve a Project via name.
+		:param name: name of the project (unique).
+		:returns: JSON object.
+		"""
+		if type(name) != str:
+			print("VALISPACE-ERROR: The function requires a valid project name (str) as argument.")
+			return
+
+		# Construct URL.
+		url = self.valispace_login['url'] + "project/?name={}".format(name)
+		json_response = requests.get(url, headers=self.get_request_headers()).json()
+		num_results = len(json_response)
+		if num_results == 0:
+			print("VALISPACE-ERROR: A Project with this name does not exist. Please check for typos.")
+		else:
+			return json_response
 
 	def post_data(self, type=None, data={}):
 		"""
@@ -406,7 +415,6 @@ class API:
 		:param data: dict with key value pairs for the object attributes.
 		:returns: JSON object.
 		"""
-
 		# Check if no argument was passed
 		if data is None:
 			print("VALISPACE-ERROR: Data argument expected")
