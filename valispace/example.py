@@ -1,3 +1,5 @@
+#!/usr/bin/env python2
+
 # TEST COMAND EXAMPLES WITH THE SATURN V PROJECT
 
 # Before:
@@ -13,7 +15,7 @@ vali = valispace.API()
 print("\n--- GET VALI ---")
 a = vali.get_vali(3)
 print("id=3: \n" + str(a))
-b = vali.get_vali_by_name('CommandModule.Mass')
+b = vali.get_vali_by_name('CommandModule.Mass', 'Saturn_V')
 print("\nname='CommandModule.Mass' \n" + str(b))
 
 print("\n\n--- GET FILTERED VALI LISTS ---")
