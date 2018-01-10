@@ -320,16 +320,19 @@ class API:
 		url = self.valispace_login['url'] + "component/{}/".format(id)
 		return requests.get(url, headers=self.get_request_headers()).json()
 
-	def get_component_by_name(self, name):
+	def get_component_by_name(self, unique_name, project_name):
 		"""
 		Returns JSON of a unique Component.
 		:param name: unique name of the component to fetch.
 		:returns: JSON object.
 		"""
-		if type(name) != str:
+		if type(unique_name) != str:
 			raise Exception("VALISPACE-ERROR: The function requires a component unique name (str) as argument.")
 
-		url = self.valispace_login['url'] + "component/?unique_name={}".format(name)
+		if type(project_name) != str:
+			raise Exception("VALISPACE-ERROR: The function requires a valid Project name (str) as argument.")
+
+		url = self.valispace_login['url'] + "component/?unique_name={}&project__name={}".format(unique_name, project_name)
 		json_response = requests.get(url, headers=self.get_request_headers()).json()
 		num_results = len(json_response)
 
@@ -472,7 +475,7 @@ class API:
 		except:
 			raise Exception("VALISPACE-ERROR: Unknown error.")
 
-	def update_matrix_formulas(self, id, matrix):
+	def update_matrix_formulas(self, id, matrix_formula):
 		"""
 		Finds the Matrix that corresponds to the input id,
 		Finds each of the Valis that correspond to the vali id (contained in each cell of the matrix)
@@ -483,13 +486,13 @@ class API:
 		matrix_data = requests.get(url, headers=self.get_request_headers).json()
 
 		# Check matrix dimensions.
-		if not len(matrix) == matrix_data["number_of_rows"] and len(matrix[0]) == matrix_data["number_of_columns"]:
+		if not len(matrix_formula) == matrix_data["number_of_rows"] and len(matrix_formula[0]) == matrix_data["number_of_columns"]:
 			raise Exception('VALISPACE-ERROR: The dimensions of the local and the remote matrix do not match.')
 
 		# Update referenced valis in each matrix cell
 		for row in range(matrix_data['number_of_rows']):
 			for col in range(matrix_data['number_of_columns']):
-				self.update_vali(id=matrix_data['cells'][row][col], formula=matrix[row][col])
+				self.update_vali(id=matrix_data['cells'][row][col], formula=matrix_formula[row][col])
 
 	# Increment function to add multiple fields to url
 	def __increment_url(self, url):

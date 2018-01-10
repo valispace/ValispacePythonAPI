@@ -25,53 +25,60 @@ import valispace
 **And initialize with:**
 
 ```
-vali = vali.API()
+valispace = valispace.API()
 ```
 
-At this step you will need to enter your Valispace url (e.g. https://demo.vali.com), username and password for authentication, or use the one line function:
+At this step you will need to enter your Valispace url (e.g. https://demo.valispace.com), username and password for authentication, or use the one line function:
+
+valispace = valispace.API(url='https://demo.valispace.com', username='your_user_name', password='******')
 
 Then use the Valispace API like this:
 
 ### GET :
 
-A dict of an entire data type:
+A dict of Valis:
 ```python
-all_valis = vali.all_data(type='vali')
+valis = valispace.get_vali_list()
 ```
-The 'type' field can be: '*component*', '*vali*', '*textvali*' or '*tag*'
 
 **All Vali** ids and names:
 ```python
-all_vali_names = vali.get_vali_names()
+all_vali_names = valispace.get_vali_names()
 ```
 
 A **Vali** with all properties:
 
 Argument | Example
 ------------- | -------------
-id | `vali.get_vali(1)`
-name | `vali.get_vali_by_name('Fan.Mass')`
+id | `valispace.get_vali(id=1)`
+unique_name | `valispace.get_vali_by_name(vali_name='Blade', project_name='Fan')`
 
 A **matrix**:
 
 ```python
-matrix = vali.get_matrix_str(57)
+matrix = valispace.get_matrix(id=57)
+```
+
+or a condensed version with only Vali ids and values:
+
+```python
+matrix = valispace.get_matrix_str(id=57)
 ```
 
 A **Component** with all properties:
 
 Argument | Example
 ------------- | -------------
-id | `vali.get_component(1)`
-unique_name | `vali.get_component_by_name('Blade')`
+id | `valispace.get_component(id=1)`
+unique_name | `valispace.get_component_by_name(unique_name='Fan.Blade', project_name='Fan')`
 
 
 A **Project** with all properties:
 
 Argument | Example
 ------------- | -------------
-id | `vali.get_project(1)`
-name | `vali.get_project_by_name('Fan')`
+id | `valispace.get_project(id=1)`
+name | `valispace.get_project_by_name(name='Fan')`
 
 ### FILTER :
 
@@ -79,62 +86,63 @@ List of **Valis** with the specified arguments:
 
 Argument | Example
 ------------- | -------------
-workspace_id | `vali.get_vali_list(workspace_id=1)`
-workspace_name | `vali.get_vali_list(workspace_name='Default Workspace')`
-project_id | `vali.get_vali_list(project_id=1)`
-project_name | `vali.get_vali_list(project_name='Saturn_V')`
-parent_id | `vali.get_vali_list(parent_id=1)`
-parent_name | `vali.get_vali_list(parent_name='Fan')`
-tag_id | `vali.get_vali_list(tag_id=10)`
-tag_name | `vali.get_vali_list(tag_id='example_tag')`
-vali_marked_as_impacted | `vali.get_vali_list(vali_marked_as_impacted='10')`
+workspace_id | `valispace.get_vali_list(workspace_id=1)`
+workspace_name | `valispace.get_vali_list(workspace_name='Default Workspace')`
+project_id | `valispace.get_vali_list(project_id=1)`
+project_name | `valispace.get_vali_list(project_name='Saturn_V')`
+parent_id | `valispace.get_vali_list(parent_id=1)`
+parent_name | `valispace.get_vali_list(parent_name='Fan')`
+tag_id | `valispace.get_vali_list(tag_id=10)`
+tag_name | `valispace.get_vali_list(tag_id='example_tag')`
+vali_marked_as_impacted | `valispace.get_vali_list(vali_marked_as_impacted='10')`
 
 
 List of **Components** with the specified arguments:
 
 Argument | Example
 ------------- | -------------
-workspace_id | `vali.get_component_list(workspace_id=1)`
-workspace_name | `vali.get_component_list(workspace_name='Default Workspace')`
-project_id | `vali.get_component_list(project_id=1)`
-project_name | `vali.get_component_list(project_name='Fan')`
-parent_id | `vali.get_component_list(parent_id=1)`
-parent_name | `vali.get_component_list(parent_name='Fan')`
-tag_id | `vali.get_component_list(tag_id=10)`
-tag_name | `vali.get_component_list(tag_name='example_tag')`
+workspace_id | `valispace.get_component_list(workspace_id=1)`
+workspace_name | `valispace.get_component_list(workspace_name='Default Workspace')`
+project_id | `valispace.get_component_list(project_id=1)`
+project_name | `valispace.get_component_list(project_name='Fan')`
+parent_id | `valispace.get_component_list(parent_id=1)`
+parent_name | `valispace.get_component_list(parent_name='Fan')`
+tag_id | `valispace.get_component_list(tag_id=10)`
+tag_name | `valispace.get_component_list(tag_name='example_tag')`
 
 
 List of **Projects** with the specified arguments:
 
 Argument | Example
 ------------- | -------------
-workspace_id | `vali.get_project_list(workspace_id=1)`
-workspace_name | `vali.get_project_list(workspace_name='Default Workspace')`
+workspace_id | `valispace.get_project_list(workspace_id=1)`
+workspace_name | `valispace.get_project_list(workspace_name='Default Workspace')`
 
 ### UPDATE:
 A Vali formula:
 ```python
-vali.update_vali(50, formula=str(value + 1))
+valispace.update_vali(id=50, formula=str(value + 1))
 ```
 
 A matrix:
 ```python
-vali.update_matrix_formulas(57, [[2.1], [0.0], [0.0]])
+valispace.update_matrix_formulas(id=57, matrix_formula=[[2.1], [0.0], [0.0]])
 ```
 
 
 ### POST
 ```python
-vali.post_data(type='vali', data=json_object)
+valispace.post_data(type='vali', data=json_object)
 ```
 
 The input data should be a single JSON object. Check the examples:
+
 ```python
 import valispace
-valispace = vali.API()
+valispace = valispace.API()
 
 # -- Insert new Component --
-vali.post_data(type='component', data="""{
+valispace.post_data(type='component', data="""{
         "name": "component_name",
         "description": "Insert description here",
         "parent": null,
@@ -143,7 +151,7 @@ vali.post_data(type='component', data="""{
     }""")
 
 # -- Insert new Vali --
-vali.post_data(type='vali', data="""{
+valispace.post_data(type='vali', data="""{
         "parent": 438,
         "shortname": "mass",
         "description": "",
@@ -159,14 +167,14 @@ vali.post_data(type='vali', data="""{
     }""")
 
 # -- Insert new Textvali --
-vali.post_data(type='textvali', data="""{
+valispace.post_data(type='textvali', data="""{
         "shortname": "Message",
         "text": "Message text",
         "parent": 438
     }""")
 
 # -- Insert new Tag --
-vali.post_data(type='tag', data="""{
+valispace.post_data(type='tag', data="""{
         "name": "white-tag",
         "color": "#FFFFFF"
     }""")
@@ -175,41 +183,6 @@ vali.post_data(type='tag', data="""{
 - The "name" fields should never be repeated, this will result in a error in the REST API.
 - The "valis" are automatically updated when new valis with this componenet id are inserted
 
-**Get all Vali ids and names:**
-```
-all_vali_names = vali.get_vali_names()
-```
-
-**Get a Vali with all properties:**
-
-```
-a = vali.get_vali(50)
-b = vali.get_vali_by_name("Fan.Mass")
-```
-
-**Get the value of a Vali:**
-
-```
-value = vali.get_vali_value(50)
-```
-
-**Update a Vali formula:**
-
-```
-vali.update_vali(50, formula=str(value + 1))
-```
-
-**Get a matrix:**
-
-```
-matrix = vali.get_matrix_str(57)
-```
-
-**Update a matrix:**
-
-```
-vali.update_matrix_formulas(57, [[2.1], [0.0], [0.0]])
-```
 
 <!-- ## Contributing
 
