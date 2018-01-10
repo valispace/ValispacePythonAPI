@@ -24,13 +24,15 @@ import valispace
 
 **And initialize with:**
 
-```
+```python
 valispace = valispace.API()
 ```
 
 At this step you will need to enter your Valispace url (e.g. https://demo.valispace.com), username and password for authentication, or use the one line function:
 
+```python
 valispace = valispace.API(url='https://demo.valispace.com', username='your_user_name', password='******')
+```
 
 Then use the Valispace API like this:
 
