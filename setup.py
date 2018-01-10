@@ -4,7 +4,7 @@ setup(
     name='valispace',
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
     install_requires=['requests'],
-    version='0.1',
+    version='0.1.1',
     description='Valispace Python API',
     author='Valispace',
     author_email='contact-us@valispace.com',
