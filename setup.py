@@ -3,7 +3,7 @@ from setuptools import setup, find_packages
 setup(
     name='valispace',
     packages=find_packages(exclude=['contrib', 'docs', 'tests*']),
-    install_requires=['requests'],
+    install_requires=['requests', 'six'],
     version='0.1.1',
     description='Valispace Python API',
     author='Valispace',

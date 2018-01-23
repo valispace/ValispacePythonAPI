@@ -5,6 +5,7 @@ import getpass
 import json
 import requests
 import sys
+import six
 
 
 class API:
@@ -33,22 +34,27 @@ class API:
 		"""
 		print("\nAuthenticating Valispace...\n")
 		if url is None:
-			url = raw_input('Your Valispace url: ').rstrip("/")
+			url = six.moves.input('Your Valispace url: ').strip().rstrip("/")
 		if username is None:
-			username = raw_input('Username: ')
+			username = six.moves.input('Username: ').strip()
 		if password is None:
-			password = getpass.getpass('Password: ')
+			password = getpass.getpass('Password: ').strip()
+
+		if not (url.startswith('http://') or url.startswith('https://')):
+			url = 'http://' + url	# default to http... should be https
 
 		# Check for SSL connection before sending the username and password.
+		'''
 		if url[:5] != "https":
 			sys.stdout.write("Are you sure you want to use a non-SSL connection? "
 				"This will expose your password to the network and might be a significant security risk [y/n]: ")
 			while True:
-				choice = raw_input().lower()
+				choice = six.moves.input().lower()
 				if choice == "y":
 					break
 				if choice == "n":
 					return
+		'''
 
 		try:
 			oauth_url = url + "/o/token/"
@@ -59,24 +65,38 @@ class API:
 				'password': password,
 				'client_id': client_id,
 			})
-			access = "Bearer " + result.json()['access_token']
-			self.valispace_login = {
-				'url': url + '/rest/',
-				'options': {
-					'Timeout': 200,
-					'Headers': {
-						'Authorization': access,
-						'Content-Type': 'application/json',
-					}
-				}
-			}
-			print("You have been successfully connected to the {} API.".format(self.valispace_login['url']))
+		except requests.exceptions.RequestException as e:
+			raise Exception("VALISPACE-ERROR: " + str(e))
 
 		except:
 			# TODO:
 			# T: Capture specific exceptions, bc it is also possible that
 			# the endpoint does not work or something like that...
 			raise Exception("VALISPACE-ERROR: Invalid credentials or url.")
+
+		json = result.json()
+		print('json:', json)	# debug
+
+		if 'error' in json and json['error'] != None:
+			if 'error_description' in json:
+				raise Exception("VALISPACE-ERROR: " + json['error_description'])
+			else:
+				raise Exception("VALISPACE-ERROR: " + json['error'])
+			return
+
+		access = "Bearer " + json['access_token']
+		self.valispace_login = {
+			'url': url + '/rest/',
+			'options': {
+				'Timeout': 200,
+				'Headers': {
+					'Authorization': access,
+					'Content-Type': 'application/json',
+				}
+			}
+		}
+		print("You have been successfully connected to the {} API.".format(self.valispace_login['url']))
+
 
 	def get_all_data(self, type=None):
 		"""
@@ -162,7 +182,14 @@ class API:
 		if vali_marked_as_impacted:
 			url = self.__increment_url(url) + "valis_marked_as_impacted={}".format(vali_marked_as_impacted)
 		response = requests.get(url, headers=self.get_request_headers())
-		return response.json()
+
+		if response.status_code != 200:
+			print('Response:', response)
+			print('Status code:', response.status_code)
+			print('Text:', response.text)
+			return None
+		else:
+			return response.json()
 
 	def get_vali_names(self, project_name=None):
 		"""
@@ -306,7 +333,15 @@ class API:
 		elif tag_name:
 			url = self.__increment_url(url) + "tags__name={}".format(tag_name)
 
-		return requests.get(url, headers=self.get_request_headers()).json()
+		response = requests.get(url, headers=self.get_request_headers())
+
+		if response.status_code != 200:
+			#print('Response:', response)
+			print('Status code:', response.status_code)
+			#print('Text:', response.text)
+			return None
+		else:
+			return response.json()
 
 	def get_component(self, id):
 		"""
