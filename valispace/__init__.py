@@ -75,7 +75,6 @@ class API:
 			raise Exception("VALISPACE-ERROR: Invalid credentials or url.")
 
 		json = result.json()
-		print('json:', json)	# debug
 
 		if 'error' in json and json['error'] != None:
 			if 'error_description' in json:
