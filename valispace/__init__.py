@@ -237,6 +237,23 @@ class API:
 		raise Exception("VALISPACE-ERROR: There is no Vali with this name and project, make sure you admit a "
 			"valid full name for the vali (e.g. ComponentX.TestVali) and a valid project name.")
 
+	def fuzzysearch_vali(self, searchterm):
+		"""
+		Returns JSON of a unique Vali given a similar name
+		:param searchterm: (not necessarily exact) name of vali
+		:returns: JSON object.
+		"""
+		if type(searchterm) != str:
+			raise Exception("VALISPACE-ERROR: The function requires a string as parameter.")
+
+		url = self.valispace_login['url'] + "fuzzysearch/Vali/name/{}/".format(searchterm)
+		result = requests.get(url, headers=self.get_request_headers(), allow_redirects=True).json()
+
+		if result == {}:
+			raise Exception("VALISPACE-ERROR: Could not find a matching vali for {}".format(searchterm))
+		else:
+			return result
+
 	def get_vali_value(self, id):
 		"""
 		Returns the value of a vali.
