@@ -131,6 +131,19 @@ A matrix:
 valispace.update_matrix_formulas(id=57, matrix_formula=[[2.1], [0.0], [0.0]])
 ```
 
+Creating a dataset:
+```python
+vali_id = 1
+
+data = [
+	[1, 2],
+	[3, 4],
+	[5, 6],
+]
+
+valispace.create_dataset_and_set_values(vali_id, data)
+```
+
 
 ### POST
 ```python
