@@ -16,7 +16,7 @@ class API:
 	_read_only_vali_fields = [
 		'id', 'url', 'name', 'formatted_formula', 'value', 'uses_default_formula', 'totalmargin_plus',
 		'totalmargin_minus', 'wc_plus', 'wc_minus', 'calculated_valis', 'subscription_text', 'baseunit',
-		'subscribed', 'value_baseunit', 'type', 'type_name', 'old_value',
+		'subscribed', 'value_baseunit', 'type', 'type_name', 'old_value', "data_type", "function_data",
 	]
 
 	_writable_vali_fields = [
@@ -91,6 +91,7 @@ class API:
 				'Headers': {
 					'Authorization': access,
 					'Content-Type': 'application/json',
+					#'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.82 Safari/537.36'
 				}
 			}
 		}
@@ -256,11 +257,14 @@ class API:
 	# 	"""
 	# 	# TBD...
 
-	def update_vali(self, id, shortname=None, formula=None, data={}):
+	def update_vali(self, id, shortname=None, formula=None, data=None):
 		"""
 		Finds the Vali that corresponds to the input id
 		and updates it with the input shortname, formula and/or data.
 		"""
+		if data == None:
+			data = {}
+
 		if not id:
 			raise Exception("VALISPACE-ERROR: You need to pass an ID.")
 
@@ -427,7 +431,7 @@ class API:
 		else:
 			return json_response
 
-	def post_data(self, type=None, data={}):
+	def post_data(self, type=None, data=None):
 		"""
 		Post new component/vali/textvali/tags with the input data
 		Data is expected to be a JSON string with some required fields like name.
@@ -437,7 +441,7 @@ class API:
 		"""
 		# Check if no argument was passed
 		if data is None:
-			raise Exception("VALISPACE-ERROR: Data argument expected.")
+			data = {}
 		elif type is None:
 			raise Exception("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags).")
 
@@ -535,3 +539,135 @@ class API:
 		if not url.endswith('?'):
 			url += "&"
 		return url
+
+
+	def vali_create_dataset(self, vali_id):
+		"""
+		Creates a new dataset in vali.
+		:param vali_id: Id of the vali where we want to create the dataset.
+		:returns: New datset id.
+		"""
+		url = self.valispace_login['url'] + 'vali/functions/datasets/'
+
+		data = {
+			"vali": int(vali_id)
+		}
+
+		result = requests.post(url, headers=self.get_request_headers(), json=data)
+
+		if result.status_code != 201:
+			raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
+
+		return result.json()['id']
+
+
+	'''def vali_dataset_set_values(self, vali_id, dataset_id, input_data, *name):
+		"""
+		Sets a dataset data.
+		:param dataset_id: Id of the dataset that we want to change.
+		:param data: Data, in the format of [[x0, y0...], [x1, y1...], ...]
+		:param name: Name of each column, optional.
+		"""
+		url = self.valispace_login['url'] + 'vali/functions/datasets/'
+
+		#if len(input_data) > 0:
+		#	input_data.insert(0, name)
+
+		s = 0
+
+		points = []
+
+		for d in input_data:
+			if s != 0:
+				if len(d) != s:
+					raise Exception("Data members with inconsistent length. Found {}, expected {}.".format(len(d), s))
+			else:
+				s = len(d)
+
+			point = {
+				#'dataset': dataset_id,
+				'position': d[0],
+				'variables': [],
+			}
+
+			for v in d[1:]:
+				point['variables'].append({
+					'value': str(v),
+					'value_string': str(v),
+					'value_number': float(v),
+				})
+
+			points.append(point)
+
+		data = {
+			#'id': dataset_id,
+			'vali': vali_id,
+			'dimensions': s - 1,
+			'points': points,
+		}
+
+		print(json.dumps(data))
+
+		result = requests.post(url, headers=self.get_request_headers(), json=data)
+
+		print(result.status_code, result.content)'''
+
+
+	def create_dataset_and_set_values(self, vali_id, input_data):
+		"""
+		Sets a dataset.
+		:param vali_id: Id of the vali where we want to create the dataset.
+		:param data: Data, in the format of [[x0, y0...], [x1, y1...], ...]
+		"""
+		url = self.valispace_login['url'] + 'vali/functions/datasets/'
+		data = {
+			"vali": vali_id
+		}
+		response = requests.post(url, headers=self.get_request_headers(), json=data)
+
+		if response.status_code >= 300:
+			raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
+
+		response = response.json()
+		dataset_id = response['id']
+		variable_id = response['points'][0]['variables'][0]['id']
+		point_id = response['points'][0]['id']
+
+		s = 0
+
+		for d in input_data:
+			if s != 0:
+				if len(d) != s:
+					raise Exception("Data members with inconsistent length. Found {}, expected {}.".format(len(d), s))
+				url = self.valispace_login['url'] + 'vali/functions/datasets/points/'
+				data = {
+					"dataset": dataset_id
+				}
+				response = requests.post(url, headers=self.get_request_headers(), json=data)
+				if response.status_code >= 300:
+					raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
+
+				response = response.json()
+				point_id = response['id']
+				variable_id = response['variables'][0]['id']
+			else:
+				s = len(d)
+
+			url = self.valispace_login['url'] + 'vali/functions/datasets/points/' + str(point_id) + '/'
+			data = {
+				"value": d[0]
+			}
+			response = requests.patch(url, headers=self.get_request_headers(), json=data)
+			if response.status_code >= 300:
+				raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
+
+			for v in d[1:]:
+				url = self.valispace_login['url'] + 'vali/functions/datasets/points/variables/' + str(variable_id) + '/'
+				data = {
+					"value_number": v
+				}
+				response = requests.patch(url, headers=self.get_request_headers(), json=data)
+				if response.status_code >= 300:
+					raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
+
+		return dataset_id
