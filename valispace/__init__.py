@@ -311,24 +311,17 @@ class API:
 		would impact another one.
 		"""
 		url = '{}vali/{}/impact-analysis/'.format(self.valispace_login['url'], vali_id)
-
-		print(url)
-
 		data = {
-			"dependency": dependency_id,
-			"new_value": new_value,
+			"dependency": str(dependency_id),
+			"new_value": str(new_value),
 		}
-
-		print(data)
-
-		result = requests.post(url, headers=self.get_request_headers(), data=data)
-
-		print(result)
-
-		if result.status_code != 200:
-			raise Exception("There has been a problem with your request (status code: {}): {}\n"
-				.format(result.status_code, result.content))
-		return result.json()['result']
+		response = requests.post(url, headers=self.get_request_headers(), json=data)
+		if response.status_code != 200:
+			details = response.content
+			code = response.status_code
+			msg = "There has been a problem with your request (status code: {}): {}\n".format(code, details)
+			raise Exception(msg)
+		return response.json().get('result')
 
 	def get_component_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None,
 			parent_id=None, parent_name=None, tag_id=None, tag_name=None):

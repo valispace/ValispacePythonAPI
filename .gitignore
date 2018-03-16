@@ -1,16 +1,16 @@
-# general things to ignore
 build/
 dist/
 env/
+notebooks/
+
 *.egg-info/
 *.egg
-
-.vscode/
 *.py[cod]
-__pycache__/
 *.so
-*~
 
-# due to using tox and pytest
 .tox
 .cache
+
+*~
+__pycache__/
+.vscode/
