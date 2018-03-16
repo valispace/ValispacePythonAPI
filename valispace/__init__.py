@@ -458,11 +458,7 @@ class API:
 		"""
 		# Check if no argument was passed
 		if data is None:
-<<<<<<< HEAD
-			raise Exception("VALISPACE-ERROR: Data argument expected.")
-=======
 			data = {}
->>>>>>> e4989110456bae807bdc6d043580a59b6e864dc5
 		elif type is None:
 			raise Exception("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags).")
 
@@ -534,11 +530,7 @@ class API:
 		except:
 			raise Exception("VALISPACE-ERROR: Unknown error.")
 
-<<<<<<< HEAD
-	def update_matrix_formulas(self, id, matrix):
-=======
 	def update_matrix_formulas(self, id, matrix_formula):
->>>>>>> e4989110456bae807bdc6d043580a59b6e864dc5
 		"""
 		Finds the Matrix that corresponds to the input id,
 		Finds each of the Valis that correspond to the vali id (contained in each cell of the matrix)
@@ -549,11 +541,7 @@ class API:
 		matrix_data = requests.get(url, headers=self.get_request_headers).json()
 
 		# Check matrix dimensions.
-<<<<<<< HEAD
-		if not len(matrix) == matrix_data["number_of_rows"] and len(matrix[0]) == matrix_data["number_of_columns"]:
-=======
 		if not len(matrix_formula) == matrix_data["number_of_rows"] and len(matrix_formula[0]) == matrix_data["number_of_columns"]:
->>>>>>> e4989110456bae807bdc6d043580a59b6e864dc5
 			raise Exception('VALISPACE-ERROR: The dimensions of the local and the remote matrix do not match.')
 
 		# Update referenced valis in each matrix cell
