@@ -287,7 +287,7 @@ class API:
 		if data == None :
 			data = {}
 		elif type(data) != dict:
-			data = {'formula': data}
+			raise Exception('VALISPACE-ERROR: data needs to be a dictionary. To update formula / value use "formula"')
 
 		if not id:
 			raise Exception("VALISPACE-ERROR: You need to pass an ID.")
