@@ -6,6 +6,7 @@ import json
 import requests
 import sys
 import six
+import re
 
 
 class API:
@@ -34,11 +35,13 @@ class API:
 		"""
 		print("\nAuthenticating Valispace...\n")
 		if url is None:
-			url = six.moves.input('Your Valispace url: ').strip().rstrip("/")
+			url = six.moves.input('Your Valispace url: ')
 		if username is None:
 			username = six.moves.input('Username: ').strip()
 		if password is None:
 			password = getpass.getpass('Password: ').strip()
+
+		url = url.strip().rstrip("/")
 
 		if not (url.startswith('http://') or url.startswith('https://')):
 			url = 'http://' + url	# default to http... should be https
@@ -57,9 +60,9 @@ class API:
 		'''
 
 		try:
-			oauth_url = url + "/o/token/"
+			oauth_url = url + '/o/token/'
 			client_id = "ValispaceREST"  # registered client-id in Valispace Deployment
-			result = requests.post(oauth_url, data={
+			response = requests.post(oauth_url, data={
 				'grant_type': 'password',
 				'username': username,
 				'password': password,
@@ -67,14 +70,16 @@ class API:
 			})
 		except requests.exceptions.RequestException as e:
 			raise Exception("VALISPACE-ERROR: " + str(e))
-
 		except:
 			# TODO:
 			# T: Capture specific exceptions, bc it is also possible that
 			# the endpoint does not work or something like that...
 			raise Exception("VALISPACE-ERROR: Invalid credentials or url.")
 
-		json = result.json()
+		if response.status_code != 200:
+			raise Exception("VALISPACE-ERROR: Unknown.")
+
+		json = response.json()
 
 		if 'error' in json and json['error'] != None:
 			if 'error_description' in json:
@@ -279,8 +284,10 @@ class API:
 		Finds the Vali that corresponds to the input id
 		and updates it with the input shortname, formula and/or data.
 		"""
-		if data == None:
+		if data == None :
 			data = {}
+		elif type(data) != dict:
+			data = {'formula': data}
 
 		if not id:
 			raise Exception("VALISPACE-ERROR: You need to pass an ID.")
@@ -297,13 +304,39 @@ class API:
 			raise Exception("You have not entered any valid fields. Here is a list of all fields \
 				that can be updated:\n{}.".format(", ".join(self._writable_vali_fields)))
 		url = self.valispace_login['url'] + "vali/{}/".format(id)
-		result = requests.patch(url, headers=self.get_request_headers(), data=data)
-		if result.status_code == 200:
-			print("Successfully updated Vali {} with the following fields:\n{}"
-				.format(vali["name"], stringified_new_vali_data))
-		else:
+		result = requests.patch(url, headers=self.get_request_headers(), data=json.dumps(data))
+		if result.status_code != 200:
 			raise Exception("Invalid Request.")
-		return result
+		return json.loads(result.text)
+
+
+	def impact_analysis(self, id, target_vali_id, range_from, range_to, range_step_size):
+		data = {}
+
+		if not id:
+			raise Exception("VALISPACE-ERROR: You need to pass an ID.")
+
+		url = self.valispace_login['url'] + "vali/{}/impact-analysis-graph-for/{}/?range_min={}&range_max={}&range_step_size={}".format(id, target_vali_id, range_from, range_to, range_step_size)
+		print(url)
+		result = requests.get(url, headers=self.get_request_headers(), data=data)
+		if result.status_code != 200:
+			print(result.text)
+			raise Exception("Invalid Request.")
+		return json.loads(result.text)
+
+
+	def what_if(self, vali_name, target_name, value):
+		if not id or not target_name or not value:
+			raise Exception("VALISPACE-ERROR: You need to pass an ID.")
+
+		url = self.valispace_login['url'] + "alexa_what_if/{}/{}/{}/".format(vali_name, target_name, value)
+		print(url)
+		result = requests.get(url, headers=self.get_request_headers())
+		if result.status_code != 200:
+			print(result.text)
+			raise Exception("Invalid Request.")
+		return json.loads(result.text)
+
 
 	def get_component_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None,
 			parent_id=None, parent_name=None, tag_id=None, tag_name=None):
@@ -636,14 +669,20 @@ class API:
 		:param vali_id: Id of the vali where we want to create the dataset.
 		:param data: Data, in the format of [[x0, y0...], [x1, y1...], ...]
 		"""
+		if type(input_data) != list:
+			raise Exception('input_data must be an array')
+
 		url = self.valispace_login['url'] + 'vali/functions/datasets/'
 		data = {
 			"vali": vali_id
 		}
-		response = requests.post(url, headers=self.get_request_headers(), json=data)
+		try:
+			response = requests.post(url, headers=self.get_request_headers(), json=data)
+		except:
+			raise Exception("VALISPACE ERROR: Is the vali_id valid?")
 
 		if response.status_code >= 300:
-			raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
+			raise Exception("Invalid Request (status code: {}): {}\n".format(response.status_code, response.content))
 
 		response = response.json()
 		dataset_id = response['id']
