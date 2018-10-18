@@ -542,13 +542,7 @@ class API:
 		:returns: JSON object.
 		"""
 
-		url = self.valispace_login['url'] + url
-		result = requests.post(url, headers=self.get_request_headers(), data=data)
-
-		if result.status_code >= 200 and result.status_code < 300:
-			return result.json()
-		else:
-			raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
+		self.request('POST', url, data)
 
 
 	def get(self, url, data=None):
@@ -559,8 +553,20 @@ class API:
 		:returns: JSON object.
 		"""
 
+		self.request('GET', url, data)
+
+
+	def request(self, method, url, data=None):
+		"""
+		Generic request data
+		:param method: the method
+		:param url: the relative url
+		:param data: the data
+		:returns: JSON object.
+		"""
+
 		url = self.valispace_login['url'] + url
-		result = requests.get(url, headers=self.get_request_headers(), data=data)
+		result = requests.request(method, url, headers=self.get_request_headers(), json=data)
 
 		if result.status_code >= 200 and result.status_code < 300:
 			return result.json()
