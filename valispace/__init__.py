@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 import getpass
 import json
 import requests
@@ -26,8 +27,10 @@ class API:
 		'minimum', 'maximum',
 	]
 
+
 	def get_request_headers(self):
 		return self.valispace_login['options']['Headers']
+
 
 	def __init__(self, url=None, username=None, password=None):
 		"""
@@ -129,6 +132,7 @@ class API:
 
 		return return_dictionary
 
+
 	def get_vali_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None, parent_id=None,
 			parent_name=None, tag_id=None, tag_name=None, vali_marked_as_impacted=None):
 		"""
@@ -210,6 +214,7 @@ class API:
 		valinames = requests.get(url, headers=self.get_request_headers())
 		return valinames.json()
 
+
 	def get_vali(self, id):
 		"""
 		Returns JSON of a unique Vali.
@@ -220,6 +225,7 @@ class API:
 			raise Exception("VALISPACE-ERROR: The function requires an ID (int) as parameter.")
 		url = self.valispace_login['url'] + "vali/{}/".format(id)
 		return requests.get(url, headers=self.get_request_headers()).json()
+
 
 	def get_vali_by_name(self, vali_name, project_name):
 		"""
@@ -243,6 +249,7 @@ class API:
 		raise Exception("VALISPACE-ERROR: There is no Vali with this name and project, make sure you admit a "
 			"valid full name for the vali (e.g. ComponentX.TestVali) and a valid project name.")
 
+
 	def fuzzysearch_vali(self, searchterm):
 		"""
 		Returns JSON of a unique Vali given a similar name
@@ -259,6 +266,7 @@ class API:
 			raise Exception("VALISPACE-ERROR: Could not find a matching vali for {}".format(searchterm))
 		else:
 			return result
+
 
 	def get_vali_value(self, id):
 		"""
@@ -278,6 +286,7 @@ class API:
 	# 	Creates a new Vali.
 	# 	"""
 	# 	# TBD...
+
 
 	def update_vali(self, id, shortname=None, formula=None, data=None):
 		"""
@@ -396,6 +405,7 @@ class API:
 		else:
 			return response.json()
 
+
 	def get_component(self, id):
 		"""
 		Returns JSON of a unique Component.
@@ -407,6 +417,7 @@ class API:
 
 		url = self.valispace_login['url'] + "component/{}/".format(id)
 		return requests.get(url, headers=self.get_request_headers()).json()
+
 
 	def get_component_by_name(self, unique_name, project_name):
 		"""
@@ -433,6 +444,7 @@ class API:
 		else:
 			raise Exception("VALISPACE-ERROR: The name you admitted is ambiguous, are you sure you used the Component's full name?")
 
+
 	def get_project_list(self, workspace_id=None, workspace_name=None):
 		"""
 		Returns JSON with all the Projects that mach the input arguments.
@@ -452,6 +464,7 @@ class API:
 		response = requests.get(url, headers=self.get_request_headers())
 		return response.json()
 
+
 	def get_project(self, id):
 		"""
 		Retrieve a Project via ID.
@@ -462,6 +475,7 @@ class API:
 			raise Exception("VALISPACE-ERROR: The function requires an id (int) as argument.")
 		url = self.valispace_login['url'] + "project/{}/".format(id)
 		return requests.get(url, headers=self.get_request_headers()).json()
+
 
 	def get_project_by_name(self, name):
 		"""
@@ -480,6 +494,7 @@ class API:
 			raise Exception("VALISPACE-ERROR: A Project with this name does not exist. Please check for typos.")
 		else:
 			return json_response
+
 
 	def post_data(self, type=None, data=None):
 		"""
@@ -518,6 +533,41 @@ class API:
 
 		return result.json()
 
+
+	def post(self, url, data=None):
+		"""
+		Posts data
+		:param url: the relative url
+		:param data: the data
+		:returns: JSON object.
+		"""
+
+		url = self.valispace_login['url'] + url
+		result = requests.post(url, headers=self.get_request_headers(), data=data)
+
+		if result.status_code >= 200 and result.status_code < 300:
+			return result.json()
+		else:
+			raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
+
+
+	def get(self, url, data=None):
+		"""
+		Posts data
+		:param url: the relative url
+		:param data: the data
+		:returns: JSON object.
+		"""
+
+		url = self.valispace_login['url'] + url
+		result = requests.get(url, headers=self.get_request_headers(), data=data)
+
+		if result.status_code >= 200 and result.status_code < 300:
+			return result.json()
+		else:
+			raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
+
+
 	def get_matrix(self, id):
 		"""
 		Returns the correct Matrix.
@@ -539,6 +589,7 @@ class API:
 			raise Exception("VALISPACE-ERROR: Matrix with id {} not found.".format(id))
 		except:
 			raise Exception("VALISPACE-ERROR: Unknown error.")
+
 
 	def get_matrix_str(self, id):
 		"""
