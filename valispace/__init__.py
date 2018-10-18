@@ -545,7 +545,7 @@ class API:
 		url = self.valispace_login['url'] + url
 		result = requests.post(url, headers=self.get_request_headers(), data=data)
 
-		if result.status_code == 201:
+		if result.status_code >= 200 and result.status_code < 300:
 			return result.json()
 		else:
 			raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
@@ -562,7 +562,7 @@ class API:
 		url = self.valispace_login['url'] + url
 		result = requests.get(url, headers=self.get_request_headers(), data=data)
 
-		if result.status_code == 201:
+		if result.status_code >= 200 and result.status_code < 300:
 			return result.json()
 		else:
 			raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
