@@ -10,7 +10,7 @@ To make use of the Valispace API you must have a valid login to any Valispace de
 
 Install the Valispace python API with pip:
 
-```
+```bash
 pip install valispace
 ```
 
@@ -28,7 +28,7 @@ import valispace
 valispace = valispace.API()
 ```
 
-At this step you will need to enter your Valispace url (e.g. https://demo.valispace.com), username and password for authentication, or use the one line function:
+At this step you will need to enter your Valispace url (e.g. <https://demo.valispace.com>), username and password for authentication, or use the one line function:
 
 ```python
 valispace = valispace.API(url='https://demo.valispace.com', username='your_user_name', password='******')
@@ -36,14 +36,16 @@ valispace = valispace.API(url='https://demo.valispace.com', username='your_user_
 
 Then use the Valispace API like this:
 
-### GET :
+### GET
 
 A dict of Valis:
+
 ```python
 valis = valispace.get_vali_list()
 ```
 
 **All Vali** ids and names:
+
 ```python
 all_vali_names = valispace.get_vali_names()
 ```
@@ -74,7 +76,6 @@ Argument | Example
 id | `valispace.get_component(id=1)`
 unique_name | `valispace.get_component_by_name(unique_name='Fan.Blade', project_name='Fan')`
 
-
 A **Project** with all properties:
 
 Argument | Example
@@ -82,7 +83,7 @@ Argument | Example
 id | `valispace.get_project(id=1)`
 name | `valispace.get_project_by_name(name='Fan')`
 
-### FILTER :
+### FILTER
 
 List of **Valis** with the specified arguments:
 
@@ -98,7 +99,6 @@ tag_id | `valispace.get_vali_list(tag_id=10)`
 tag_name | `valispace.get_vali_list(tag_id='example_tag')`
 vali_marked_as_impacted | `valispace.get_vali_list(vali_marked_as_impacted='10')`
 
-
 List of **Components** with the specified arguments:
 
 Argument | Example
@@ -112,7 +112,6 @@ parent_name | `valispace.get_component_list(parent_name='Fan')`
 tag_id | `valispace.get_component_list(tag_id=10)`
 tag_name | `valispace.get_component_list(tag_name='example_tag')`
 
-
 List of **Projects** with the specified arguments:
 
 Argument | Example
@@ -120,32 +119,36 @@ Argument | Example
 workspace_id | `valispace.get_project_list(workspace_id=1)`
 workspace_name | `valispace.get_project_list(workspace_name='Default Workspace')`
 
-### UPDATE:
+### UPDATE
+
 A Vali formula:
+
 ```python
 valispace.update_vali(id=50, formula=str(value + 1))
 ```
 
 A matrix:
+
 ```python
 valispace.update_matrix_formulas(id=57, matrix_formula=[[2.1], [0.0], [0.0]])
 ```
 
 Creating a dataset:
+
 ```python
 vali_id = 1
 
 data = [
-	[1, 2],
-	[3, 4],
-	[5, 6],
+    [1, 2],
+    [3, 4],
+    [5, 6],
 ]
 
 valispace.create_dataset_and_set_values(vali_id, data)
 ```
 
-
 ### POST
+
 ```python
 valispace.post_data(type='vali', data=json_object)
 ```
@@ -194,10 +197,31 @@ valispace.post_data(type='tag', data="""{
         "color": "#FFFFFF"
     }""")
 ```
+
 **Notes:**
+
 - The "name" fields should never be repeated, this will result in a error in the REST API.
 - The "valis" are automatically updated when new valis with this componenet id are inserted
 
+### RAW POST / GET
+
+You can make any custom requests not covered by a specific method using *request*.
+
+Argument | Example
+------------- | -------------
+method | `'GET', 'POST', 'DELETE'`
+url | `'vali/1`
+data *(optional)* | *{"name": "example"}*
+
+```python
+try:
+    v = valispace.API('http://demo.valispace.com/', 'user', 'pass')
+    projects = v.request('GET', 'project/')
+except:
+    print('Error')
+```
+
+As a shortcut if the REST method is GET you can use the *get(url, data)* function, or if it's a POST request use *post(url, data)*.
 
 <!-- ## Contributing
 
@@ -205,7 +229,7 @@ Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c6
 
 ## Authors
 
-* **Valispace**
+- **Valispace**
 
 See also the list of [contributors](https://github.com/your/project/contributors) who participated in this project.
 
