@@ -542,7 +542,7 @@ class API:
 		:returns: JSON object.
 		"""
 
-		self.request('POST', url, data)
+		return self.request('POST', url, data)
 
 
 	def get(self, url, data=None):
@@ -553,7 +553,7 @@ class API:
 		:returns: JSON object.
 		"""
 
-		self.request('GET', url, data)
+		return self.request('GET', url, data)
 
 
 	def request(self, method, url, data=None):
