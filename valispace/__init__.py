@@ -28,10 +28,6 @@ class API:
 	]
 
 
-	def get_request_headers(self):
-		return self.valispace_login['options']['Headers']
-
-
 	def __init__(self, url=None, username=None, password=None):
 		"""
 		Performs the password-based oAuth 2.0 login for read/write access.
@@ -62,10 +58,13 @@ class API:
 					return
 		'''
 
+		self._url = url + '/rest/'
+		self._session = requests.Session()
+
 		try:
 			oauth_url = url + '/o/token/'
 			client_id = "ValispaceREST"  # registered client-id in Valispace Deployment
-			response = requests.post(oauth_url, data={
+			response = self._session.post(oauth_url, data={
 				'grant_type': 'password',
 				'username': username,
 				'password': password,
@@ -92,39 +91,24 @@ class API:
 			return
 
 		access = "Bearer " + json['access_token']
-		self.valispace_login = {
-			'url': url + '/rest/',
-			'options': {
-				'Timeout': 200,
-				'Headers': {
-					'Authorization': access,
-					'Content-Type': 'application/json',
-					#'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/48.0.2564.82 Safari/537.36'
-				}
-			}
+		self._session.headers = {
+			'Authorization': access,
+			'Content-Type': 'application/json'
 		}
-		print("You have been successfully connected to the {} API.".format(self.valispace_login['url']))
+		print("You have been successfully connected to the {} API.".format(self._url))
 
 
 	def get_all_data(self, type=None):
 		"""
 		Returns a dict of all component/vali/textvali/tags with their properties.
 		"""
-		# Check if no argument was passed.
-		if type is None:
+		# Check if valid argument was passed.
+		if type not in ('component', 'vali', 'textvali', 'tag'):
 			raise Exception("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags)")
 
-		# URL
-		if type is 'component':
-			url = self.valispace_login['url'] + "component/"
-		elif type is 'vali':
-			url = self.valispace_login['url'] + "vali/"
-		elif type is 'textvali':
-			url = self.valispace_login['url'] + "textvali/"
-		elif type is 'tag':
-			url = self.valispace_login['url'] + "tag/"
+		url = type + '/'
 
-		get_data = requests.get(url, headers=self.get_request_headers()).json()
+		get_data = self.get(url)
 
 		return_dictionary = {}
 		for data in get_data:
@@ -171,7 +155,7 @@ class API:
 				raise Exception("VALISPACE-ERROR: Vali_marked_as_impacted must be an integer")
 
 		# Construct URL.
-		url = self.valispace_login['url'] + "vali/?"
+		url = "vali/?"
 		if workspace_id:
 			url += "parent__project__workspace={}".format(workspace_id)
 		if workspace_name:
@@ -190,7 +174,7 @@ class API:
 			url = self.__increment_url(url) + "tags__name={}".format(tag_name)
 		if vali_marked_as_impacted:
 			url = self.__increment_url(url) + "valis_marked_as_impacted={}".format(vali_marked_as_impacted)
-		response = requests.get(url, headers=self.get_request_headers())
+		response = self.get(url)
 
 		if response.status_code != 200:
 			print('Response:', response)
@@ -205,14 +189,11 @@ class API:
 		Returns a list of all Valis with only names and IDs.
 		:returns: JSON object.
 		"""
-		url = self.valispace_login['url']
 		if project_name:
 			project = get_project_by_name(project_name)
-			url += "project/{}/valinames/".format(project["id"])
+			return self.get("project/{}/valinames/".format(project["id"]))
 		else:
-		 	url += "valinames/"
-		valinames = requests.get(url, headers=self.get_request_headers())
-		return valinames.json()
+			return self.get("valinames/")
 
 
 	def get_vali(self, id):
@@ -223,8 +204,7 @@ class API:
 		"""
 		if type(id) != int:
 			raise Exception("VALISPACE-ERROR: The function requires an ID (int) as parameter.")
-		url = self.valispace_login['url'] + "vali/{}/".format(id)
-		return requests.get(url, headers=self.get_request_headers()).json()
+		return self.get("vali/{}/".format(id))
 
 
 	def get_vali_by_name(self, vali_name, project_name):
@@ -242,9 +222,7 @@ class API:
 		valinames = self.get_vali_names()
 		for entry in valinames:
 			if entry['name'] == vali_name:
-				url = self.valispace_login['url'] + "vali/{}/".format(entry["id"])
-				response = requests.get(url, headers=self.get_request_headers())
-				return response.json()
+				return self.get("vali/{}/".format(entry["id"]))
 
 		raise Exception("VALISPACE-ERROR: There is no Vali with this name and project, make sure you admit a "
 			"valid full name for the vali (e.g. ComponentX.TestVali) and a valid project name.")
@@ -259,8 +237,8 @@ class API:
 		if type(searchterm) != str:
 			raise Exception("VALISPACE-ERROR: The function requires a string as parameter.")
 
-		url = self.valispace_login['url'] + "fuzzysearch/Vali/name/{}/".format(searchterm)
-		result = requests.get(url, headers=self.get_request_headers(), allow_redirects=True).json()
+		url = "fuzzysearch/Vali/name/{}/".format(searchterm)
+		result = self.get(url, allow_redirects=True)
 
 		if result == {}:
 			raise Exception("VALISPACE-ERROR: Could not find a matching vali for {}".format(searchterm))
@@ -312,8 +290,8 @@ class API:
 		if not data:
 			raise Exception("You have not entered any valid fields. Here is a list of all fields \
 				that can be updated:\n{}.".format(", ".join(self._writable_vali_fields)))
-		url = self.valispace_login['url'] + "vali/{}/".format(id)
-		result = requests.patch(url, headers=self.get_request_headers(), data=json.dumps(data))
+		url = "vali/{}/".format(id)
+		result = self.request('PATCH', url, data=json.dumps(data))
 		if result.status_code != 200:
 			raise Exception("Invalid Request.")
 		return json.loads(result.text)
@@ -325,9 +303,13 @@ class API:
 		if not id:
 			raise Exception("VALISPACE-ERROR: You need to pass an ID.")
 
-		url = self.valispace_login['url'] + "vali/{}/impact-analysis-graph-for/{}/?range_min={}&range_max={}&range_step_size={}".format(id, target_vali_id, range_from, range_to, range_step_size)
+		url = "vali/{}/impact-analysis-graph-for/{}/?range_min={}&range_max={}&range_step_size={}".format(id, target_vali_id, range_from, range_to, range_step_size)
+		# FIXME: (patrickyeon) I special-cased this because there's some
+		#        printing of returned values on error, but I suspect
+		#        that is really better handled by the normal error-
+		#        handling path and getting rid of these print()s
 		print(url)
-		result = requests.get(url, headers=self.get_request_headers(), data=data)
+		result = self._session.get(self._url + url, data=data)
 		if result.status_code != 200:
 			print(result.text)
 			raise Exception("Invalid Request.")
@@ -338,9 +320,10 @@ class API:
 		if not id or not target_name or not value:
 			raise Exception("VALISPACE-ERROR: You need to pass an ID.")
 
-		url = self.valispace_login['url'] + "alexa_what_if/{}/{}/{}/".format(vali_name, target_name, value)
+		url = "alexa_what_if/{}/{}/{}/".format(vali_name, target_name, value)
+		# FIXME: (patrickyeon) same comment as on impact_analysis()
 		print(url)
-		result = requests.get(url, headers=self.get_request_headers())
+		result = self._session.get(self._url + url)
 		if result.status_code != 200:
 			print(result.text)
 			raise Exception("Invalid Request.")
@@ -377,7 +360,7 @@ class API:
 				raise Exception("VALISPACE-ERROR: Tag id must be an integer.")
 
 		# Construct URL.
-		url = self.valispace_login['url'] + "component/?"
+		url = "component/?"
 		if workspace_id:
 			url += "project__workspace={}".format(workspace_id)
 		elif workspace_name:
@@ -395,15 +378,7 @@ class API:
 		elif tag_name:
 			url = self.__increment_url(url) + "tags__name={}".format(tag_name)
 
-		response = requests.get(url, headers=self.get_request_headers())
-
-		if response.status_code != 200:
-			#print('Response:', response)
-			print('Status code:', response.status_code)
-			#print('Text:', response.text)
-			return None
-		else:
-			return response.json()
+		return self.get(url)
 
 
 	def get_component(self, id):
@@ -415,8 +390,7 @@ class API:
 		if type(id) != int:
 			raise Exception("VALISPACE-ERROR: The function requires an id (int) as argument.")
 
-		url = self.valispace_login['url'] + "component/{}/".format(id)
-		return requests.get(url, headers=self.get_request_headers()).json()
+		return self.get("component/{}/".format(id))
 
 
 	def get_component_by_name(self, unique_name, project_name):
@@ -431,14 +405,14 @@ class API:
 		if type(project_name) != str:
 			raise Exception("VALISPACE-ERROR: The function requires a valid Project name (str) as argument.")
 
-		url = self.valispace_login['url'] + "component/?unique_name={}&project__name={}".format(unique_name, project_name)
-		json_response = requests.get(url, headers=self.get_request_headers()).json()
-		num_results = len(json_response)
+		url = "component/?unique_name={}&project__name={}".format(unique_name, project_name)
+		response = self.get(url)
+		num_results = len(response)
 
 		print("num_results: ", num_results)
 
 		if num_results == 1:
-			return json_response
+			return response
 		if num_results == 0:
 			raise Exception("VALISPACE-ERROR: A Component with this name does not exist. Please check for typos.")
 		else:
@@ -452,7 +426,7 @@ class API:
 		:returns: JSON object.
 		"""
 		# Construct URL.
-		url = self.valispace_login['url'] + "project/?"
+		url = "project/?"
 		if workspace_id:
 			if type(workspace_id) != int:
 				raise Exception("VALISPACE-ERROR: workspace_id must be an integer.")
@@ -461,8 +435,7 @@ class API:
 			if type(workspace_name) != str:
 				raise Exception("VALISPACE-ERROR: workspace_name must be a string.")
 			url = self.__increment_url(url) + "workspace__name={}".format(workspace_name)
-		response = requests.get(url, headers=self.get_request_headers())
-		return response.json()
+		return self.get(url)
 
 
 	def get_project(self, id):
@@ -473,8 +446,7 @@ class API:
 		"""
 		if type(id) != int:
 			raise Exception("VALISPACE-ERROR: The function requires an id (int) as argument.")
-		url = self.valispace_login['url'] + "project/{}/".format(id)
-		return requests.get(url, headers=self.get_request_headers()).json()
+		return self.get("project/{}/".format(id))
 
 
 	def get_project_by_name(self, name):
@@ -487,13 +459,12 @@ class API:
 			raise Exception("VALISPACE-ERROR: The function requires a valid project name (str) as argument.")
 
 		# Construct URL.
-		url = self.valispace_login['url'] + "project/?name={}".format(name)
-		json_response = requests.get(url, headers=self.get_request_headers()).json()
-		num_results = len(json_response)
-		if num_results == 0:
+		url = "project/?name={}".format(name)
+		response = self.get(url)
+		if len(response) == 0:
 			raise Exception("VALISPACE-ERROR: A Project with this name does not exist. Please check for typos.")
 		else:
-			return json_response
+			return response
 
 
 	def post_data(self, type=None, data=None):
@@ -507,20 +478,14 @@ class API:
 		# Check if no argument was passed
 		if data is None:
 			data = {}
-		elif type is None:
+		if type not in ('component', 'vali', 'textvali', 'tag'):
 			raise Exception("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags).")
 
-		# URL
-		if type is 'component':
-			url = self.valispace_login['url'] + "component/"
-		elif type is 'vali':
-			url = self.valispace_login['url'] + "vali/"
-		elif type is 'textvali':
-			url = self.valispace_login['url'] + "textvali/"
-		elif type is 'tag':
-			url = self.valispace_login['url'] + "tag/"
+		url = type + '/'
 
-		result = requests.post(url, headers=self.get_request_headers(), data=data)
+		# FIXME: (patrickyeon) special-casing this, but maybe this whole
+		#        method is not required now that post() exists?
+		result = self._session.post(self._url + url, data=data)
 
 		if result.status_code == 201:
 			print("Successfully updated Vali:\n" + str(data) + "\n")
@@ -534,39 +499,42 @@ class API:
 		return result.json()
 
 
-	def post(self, url, data=None):
+	def post(self, url, data=None, **kwargs):
 		"""
 		Posts data
 		:param url: the relative url
 		:param data: the data
+		:param \**kwargs: additional args passed to the request call
 		:returns: JSON object.
 		"""
 
-		return self.request('POST', url, data)
+		return self.request('POST', url, data, **kwargs)
 
 
-	def get(self, url, data=None):
+	def get(self, url, data=None, **kwargs):
 		"""
 		Posts data
 		:param url: the relative url
 		:param data: the data
+		:param \**kwargs: additional args passed to the request call
 		:returns: JSON object.
 		"""
 
-		return self.request('GET', url, data)
+		return self.request('GET', url, data, **kwargs)
 
 
-	def request(self, method, url, data=None):
+	def request(self, method, url, data=None, **kwargs):
 		"""
 		Generic request data
 		:param method: the method
 		:param url: the relative url
 		:param data: the data
+		:param \**kwargs: additional args passed to the request call
 		:returns: JSON object.
 		"""
 
-		url = self.valispace_login['url'] + url
-		result = requests.request(method, url, headers=self.get_request_headers(), json=data)
+		url = self._url + url
+		result = self._session.request(method, url, json=data, **kwargs)
 
 		if result.status_code >= 200 and result.status_code < 300:
 			return result.json()
@@ -580,8 +548,8 @@ class API:
 		:param id: ID of Matrix.
 		:returns: list of lists.
 		"""
-		url = self.valispace_login['url'] + "matrix/{}/".format(id)
-		matrix_data = requests.get(url, headers=self.get_request_headers()).json()
+		url = "matrix/{}/".format(id)
+		matrix_data = self.get(url)
 		try:
 			# TODO:
 			# T: there is probably a faster and more efficient way...
@@ -603,8 +571,8 @@ class API:
 		:param id: ID of Matrix.
 		:returns: list of lists.
 		"""
-		url = self.valispace_login['url'] + "matrix/{}/".format(id)
-		matrix_data = requests.get(url, headers=self.get_request_headers()).json()
+		url = "matrix/{}/".format(id)
+		matrix_data = self.get(url)
 		try:
 			matrix = []
 			for row in range(matrix_data['number_of_rows']):
@@ -627,8 +595,8 @@ class API:
 		Updates the formula of each of the Valis with the formulas contained in each cell of the input matrix.
 		"""
 		# Read Matrix.
-		url = self.valispace_login['url'] + "matrix/{}/".format(id)
-		matrix_data = requests.get(url, headers=self.get_request_headers).json()
+		url = "matrix/{}/".format(id)
+		matrix_data = self.get(url)
 
 		# Check matrix dimensions.
 		if not len(matrix_formula) == matrix_data["number_of_rows"] and len(matrix_formula[0]) == matrix_data["number_of_columns"]:
@@ -654,18 +622,12 @@ class API:
 		:param vali_id: Id of the vali where we want to create the dataset.
 		:returns: New datset id.
 		"""
-		url = self.valispace_login['url'] + 'vali/functions/datasets/'
+		url = 'vali/functions/datasets/'
 
 		data = {
 			"vali": int(vali_id)
 		}
-
-		result = requests.post(url, headers=self.get_request_headers(), json=data)
-
-		if result.status_code != 201:
-			raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
-
-		return result.json()['id']
+		return self.post(url, data)['id']
 
 
 	'''def vali_dataset_set_values(self, vali_id, dataset_id, input_data, *name):
@@ -729,19 +691,15 @@ class API:
 		if type(input_data) != list:
 			raise Exception('input_data must be an array')
 
-		url = self.valispace_login['url'] + 'vali/functions/datasets/'
+		url = 'vali/functions/datasets/'
 		data = {
 			"vali": vali_id
 		}
 		try:
-			response = requests.post(url, headers=self.get_request_headers(), json=data)
+			response = self.post(url, data)
 		except:
 			raise Exception("VALISPACE ERROR: Is the vali_id valid?")
 
-		if response.status_code >= 300:
-			raise Exception("Invalid Request (status code: {}): {}\n".format(response.status_code, response.content))
-
-		response = response.json()
 		dataset_id = response['id']
 		variable_id = response['points'][0]['variables'][0]['id']
 		point_id = response['points'][0]['id']
@@ -752,35 +710,27 @@ class API:
 			if s != 0:
 				if len(d) != s:
 					raise Exception("Data members with inconsistent length. Found {}, expected {}.".format(len(d), s))
-				url = self.valispace_login['url'] + 'vali/functions/datasets/points/'
+				url = 'vali/functions/datasets/points/'
 				data = {
 					"dataset": dataset_id
 				}
-				response = requests.post(url, headers=self.get_request_headers(), json=data)
-				if response.status_code >= 300:
-					raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
-
-				response = response.json()
+				response = self.post(url, data)
 				point_id = response['id']
 				variable_id = response['variables'][0]['id']
 			else:
 				s = len(d)
 
-			url = self.valispace_login['url'] + 'vali/functions/datasets/points/' + str(point_id) + '/'
+			url = 'vali/functions/datasets/points/{}/'.format(point_id)
 			data = {
 				"value": d[0]
 			}
-			response = requests.patch(url, headers=self.get_request_headers(), json=data)
-			if response.status_code >= 300:
-				raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
+			self.request('PATCH', url, json=data)
 
 			for v in d[1:]:
-				url = self.valispace_login['url'] + 'vali/functions/datasets/points/variables/' + str(variable_id) + '/'
+				url = 'vali/functions/datasets/points/variables/{}/'.format(variable_id)
 				data = {
 					"value_number": v
 				}
-				response = requests.patch(url, headers=self.get_request_headers(), json=data)
-				if response.status_code >= 300:
-					raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
+				self.request('PATCH', url, json=data)
 
 		return dataset_id
