@@ -28,25 +28,17 @@ class API:
 	]
 
 
-	def __init__(self, url=None, username=None, password=None):
-		"""
-		Performs the password-based oAuth 2.0 login for read/write access.
-		"""
+	def __init__(self, url=None, username=None, password=None, keep_credentials=False):
 		print("\nAuthenticating Valispace...\n")
 		if url is None:
 			url = six.moves.input('Your Valispace url: ')
-		if username is None:
-			username = six.moves.input('Username: ').strip()
-		if password is None:
-			password = getpass.getpass('Password: ').strip()
 
 		url = url.strip().rstrip("/")
 
 		if not (url.startswith('http://') or url.startswith('https://')):
-			url = 'http://' + url	# default to http... should be https
+			url = 'https://' + url
 
 		# Check for SSL connection before sending the username and password.
-		'''
 		if url[:5] != "https":
 			sys.stdout.write("Are you sure you want to use a non-SSL connection? "
 				"This will expose your password to the network and might be a significant security risk [y/n]: ")
@@ -56,15 +48,30 @@ class API:
 					break
 				if choice == "n":
 					return
-		'''
+				print("Plese answer 'y' or 'n'")
 
 		self._url = url + '/rest/'
+		self._oauth_url = url + '/o/token/'
 		self._session = requests.Session()
+		self.username, self.password = None, None
+		if self.login(username, password):
+			if keep_credentials:
+				self.username, self.password = username, password
+			print("You have been successfully connected to the {} API.".format(self._url))
+
+
+	def login(self, username=None, password=None):
+		"""
+		Performs the password-based oAuth 2.0 login for read/write access.
+		"""
+		if username is None:
+			username = six.moves.input('Username: ').strip()
+		if password is None:
+			password = getpass.getpass('Password: ').strip()
 
 		try:
-			oauth_url = url + '/o/token/'
 			client_id = "ValispaceREST"  # registered client-id in Valispace Deployment
-			response = self._session.post(oauth_url, data={
+			response = self._session.post(self._oauth_url, data={
 				'grant_type': 'password',
 				'username': username,
 				'password': password,
@@ -78,8 +85,7 @@ class API:
 			# the endpoint does not work or something like that...
 			raise Exception("VALISPACE-ERROR: Invalid credentials or url.")
 
-		if response.status_code != 200:
-			raise Exception("VALISPACE-ERROR: Unknown.")
+		response.raise_for_status()
 
 		json = response.json()
 
@@ -95,7 +101,7 @@ class API:
 			'Authorization': access,
 			'Content-Type': 'application/json'
 		}
-		print("You have been successfully connected to the {} API.".format(self._url))
+		return True
 
 
 	def get_all_data(self, type=None):
@@ -536,10 +542,17 @@ class API:
 		url = self._url + url
 		result = self._session.request(method, url, json=data, **kwargs)
 
-		if result.status_code >= 200 and result.status_code < 300:
-			return result.json()
-		else:
-			raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
+		if result.status_code == 401:
+			# authentication expired
+			if self.username is None:
+				print("Authentication expired, please re-login")
+				# otherwise, we've got it saved and this is transparent
+			self.login(self.username, self.password)
+			# try the request one more time
+			result = self._session.request(method, url, json=data, **kwargs)
+
+		result.raise_for_status()
+		return result.json()
 
 
 	def get_matrix(self, id):
