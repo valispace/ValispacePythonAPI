@@ -299,10 +299,7 @@ class API:
 			raise Exception("You have not entered any valid fields. Here is a list of all fields \
 				that can be updated:\n{}.".format(", ".join(self._writable_vali_fields)))
 		url = "vali/{}/".format(id)
-		result = self.request('PATCH', url, data=json.dumps(data))
-		if result.status_code != 200:
-			raise Exception("Invalid Request.")
-		return json.loads(result.text)
+		return self.request('PATCH', url, data=data)
 
 
 	def impact_analysis(self, id, target_vali_id, range_from, range_to, range_step_size):
