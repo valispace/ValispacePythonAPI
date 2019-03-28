@@ -55,6 +55,8 @@ class API:
 		self._session = requests.Session()
 		self.username, self.password = None, None
 		if self.login(username, password):
+			# clear out old auth headers
+			self._session.headers = {}
 			if keep_credentials:
 				self.username, self.password = username, password
 			print("You have been successfully connected to the {} API.".format(self._url))
