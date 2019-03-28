@@ -55,8 +55,6 @@ class API:
 		self._session = requests.Session()
 		self.username, self.password = None, None
 		if self.login(username, password):
-			# clear out old auth headers
-			self._session.headers = {}
 			if keep_credentials:
 				self.username, self.password = username, password
 			print("You have been successfully connected to the {} API.".format(self._url))
@@ -66,6 +64,8 @@ class API:
 		"""
 		Performs the password-based oAuth 2.0 login for read/write access.
 		"""
+		# clear out old auth headers
+		self._session.headers = {}
 		if username is None:
 			username = six.moves.input('Username: ').strip()
 		if password is None:
