@@ -48,7 +48,7 @@ class API:
 					break
 				if choice == "n":
 					return
-				print("Plese answer 'y' or 'n'")
+				print("Please answer 'y' or 'n'")
 
 		self._url = url + '/rest/'
 		self._oauth_url = url + '/o/token/'
