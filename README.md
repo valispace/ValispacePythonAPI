@@ -196,6 +196,15 @@ valispace.post_data(type='tag', data="""{
         "name": "white-tag",
         "color": "#FFFFFF"
     }""")
+
+# -- Create / update dataset --
+valispace.vali_import_dataset(vali_id, [
+    [435, 5],
+    [67567, 34],
+    [89564, 567830],
+    [2345, 5687],
+    [2345, 678],
+])
 ```
 
 **Notes:**
