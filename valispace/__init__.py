@@ -108,7 +108,10 @@ class API:
         if type not in ('component', 'vali', 'textvali', 'tag'):
             raise Exception("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags)")
 
-        url = type + '/'
+		if type in ('component', 'vali', 'textvali'):
+        	url = type + 's/' # add an s to the end to get to the right endpoint
+		else:
+			url = type + '/'
 
         get_data = self.get(url)
 
@@ -157,7 +160,7 @@ class API:
                 raise Exception("VALISPACE-ERROR: Vali_marked_as_impacted must be an integer")
 
         # Construct URL.
-        url = "vali/?"
+        url = "valis/?"
         if workspace_id:
             url += "parent__project__workspace={}".format(workspace_id)
         if workspace_name:
@@ -207,7 +210,7 @@ class API:
         """
         if type(id) != int:
             raise Exception("VALISPACE-ERROR: The function requires an ID (int) as parameter.")
-        return self.get("vali/{}/".format(id))
+        return self.get("valis/{}/".format(id))
 
 
     def get_vali_by_name(self, vali_name, project_name):
@@ -225,7 +228,7 @@ class API:
         valinames = self.get_vali_names()
         for entry in valinames:
             if entry['name'] == vali_name:
-                return self.get("vali/{}/".format(entry["id"]))
+                return self.get("valis/{}/".format(entry["id"]))
 
         raise Exception("VALISPACE-ERROR: There is no Vali with this name and project, make sure you admit a "
             "valid full name for the vali (e.g. ComponentX.TestVali) and a valid project name.")
@@ -293,7 +296,7 @@ class API:
         if not data:
             raise Exception("You have not entered any valid fields. Here is a list of all fields \
                 that can be updated:\n{}.".format(", ".join(self._writable_vali_fields)))
-        url = "vali/{}/".format(id)
+        url = "valis/{}/".format(id)
         return self.request('PATCH', url, data=data)
 
 
@@ -303,7 +306,7 @@ class API:
         if not id:
             raise Exception("VALISPACE-ERROR: You need to pass an ID.")
 
-        url = "vali/{}/impact-analysis-graph-for/{}/?range_min={}&range_max={}&range_step_size={}".format(id, target_vali_id, range_from, range_to, range_step_size)
+        url = "valis/{}/impact-analysis-graph-for/{}/?range_min={}&range_max={}&range_step_size={}".format(id, target_vali_id, range_from, range_to, range_step_size)
         # FIXME: (patrickyeon) I special-cased this because there's some
         #        printing of returned values on error, but I suspect
         #        that is really better handled by the normal error-
@@ -360,7 +363,7 @@ class API:
                 raise Exception("VALISPACE-ERROR: Tag id must be an integer.")
 
         # Construct URL.
-        url = "component/?"
+        url = "components/?"
         if workspace_id:
             url += "project__workspace={}".format(workspace_id)
         elif workspace_name:
@@ -390,7 +393,7 @@ class API:
         if type(id) != int:
             raise Exception("VALISPACE-ERROR: The function requires an id (int) as argument.")
 
-        return self.get("component/{}/".format(id))
+        return self.get("components/{}/".format(id))
 
 
     def get_component_by_name(self, unique_name, project_name):
@@ -405,7 +408,7 @@ class API:
         if type(project_name) != str:
             raise Exception("VALISPACE-ERROR: The function requires a valid Project name (str) as argument.")
 
-        url = "component/?unique_name={}&project__name={}".format(unique_name, project_name)
+        url = "components/?unique_name={}&project__name={}".format(unique_name, project_name)
         response = self.get(url)
         num_results = len(response)
 
@@ -481,7 +484,10 @@ class API:
         if type not in ('component', 'vali', 'textvali', 'tag'):
             raise Exception("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags).")
 
-        url = type + '/'
+		if type in ('component', 'vali', 'textvali'):
+        	url = type + 's/' # Add an s to the end of the type for component, vali and textvali to get to the correct endpoint
+		else:
+			url = type + '/'
 
         # FIXME: (patrickyeon) special-casing this, but maybe this whole
         #        method is not required now that post() exists?
@@ -555,7 +561,7 @@ class API:
         :param id: ID of Matrix.
         :returns: list of lists.
         """
-        url = "matrix/{}/".format(id)
+        url = "matrices/{}/".format(id)
         matrix_data = self.get(url)
         try:
             # TODO:
@@ -578,7 +584,7 @@ class API:
         :param id: ID of Matrix.
         :returns: list of lists.
         """
-        url = "matrix/{}/".format(id)
+        url = "matrices/{}/".format(id)
         matrix_data = self.get(url)
         try:
             matrix = []
@@ -602,7 +608,7 @@ class API:
         Updates the formula of each of the Valis with the formulas contained in each cell of the input matrix.
         """
         # Read Matrix.
-        url = "matrix/{}/".format(id)
+        url = "matrices/{}/".format(id)
         matrix_data = self.get(url)
 
         # Check matrix dimensions.
