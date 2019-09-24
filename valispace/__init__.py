@@ -108,9 +108,9 @@ class API:
         if type not in ('component', 'vali', 'textvali', 'tag'):
             raise Exception("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags)")
 
-		if type in ('component', 'vali', 'textvali'):
+        if type in ('component', 'vali', 'textvali'):
         	url = type + 's/' # add an s to the end to get to the right endpoint
-		else:
+        else:
 			url = type + '/'
 
         get_data = self.get(url)
@@ -179,15 +179,19 @@ class API:
             url = self.__increment_url(url) + "tags__name={}".format(tag_name)
         if vali_marked_as_impacted:
             url = self.__increment_url(url) + "valis_marked_as_impacted={}".format(vali_marked_as_impacted)
-        response = self.get(url)
+        
+        try:
+            return self.get(url)
+        except Exception as e:
+            print('Something went wrong with the request. Details: {}'.format(e))
 
-        if response.status_code != 200:
-            print('Response:', response)
-            print('Status code:', response.status_code)
-            print('Text:', response.text)
-            return None
-        else:
-            return response.json()
+        # if response.status_code != 200:
+        #     print('Response:', response)
+        #     print('Status code:', response.status_code)
+        #     print('Text:', response.text)
+        #     return None
+        # else:
+        #     return response.json()
 
 
     def get_vali_names(self, project_name=None):
@@ -484,9 +488,9 @@ class API:
         if type not in ('component', 'vali', 'textvali', 'tag'):
             raise Exception("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags).")
 
-		if type in ('component', 'vali', 'textvali'):
+        if type in ('component', 'vali', 'textvali'):
         	url = type + 's/' # Add an s to the end of the type for component, vali and textvali to get to the correct endpoint
-		else:
+        else:
 			url = type + '/'
 
         # FIXME: (patrickyeon) special-casing this, but maybe this whole

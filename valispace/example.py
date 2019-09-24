@@ -6,7 +6,7 @@
 # Saturn V project id should be = 1 (change in example if it isn't)
 # In CommandModule.Mass mark impact to LaunchEscapeSystem.Mass
 # Tag CommandModule component and CommandModule.Mass with a tag named "test".
-# Tag id should be = 1 (change in exampleif it isn't)
+# Tag id should be = 1 (change in example if it isn't)
 
 import valispace
 
@@ -15,7 +15,7 @@ vali = valispace.API()
 print("\n--- GET VALI ---")
 a = vali.get_vali(id=3)
 print("id=3: \n" + str(a))
-b = vali.get_vali_by_name(vali_name='CommandModule.Mass', project_name='Saturn_V')
+b = vali.get_vali_by_name(vali_name='CommandModule.Mass', project_name='Rocket__SaturnV')
 print("\nname='CommandModule.Mass' \n" + str(b))
 
 print("\n\n--- GET FILTERED VALI LISTS ---")
@@ -43,7 +43,7 @@ del a, b, c, d, e, f, g, h
 print("\n--- GET COMPONENT ---")
 a = vali.get_component(3)
 print("id=3: \n" + str(a))
-b = vali.get_component_by_name(unique_name='CommandModule', project_name='Saturn_V')
+b = vali.get_component_by_name(unique_name='CommandModule', project_name='Rocket__SaturnV')
 print("\nname='CommandModule' \n" + str(b))
 
 print("\n\n--- GET FILTERED COMPONENT LIST ---")
@@ -70,7 +70,7 @@ del a, b, c, d, e, f, g, h
 print("\n--- GET PROJECT ---")
 a = vali.get_project(id=2)
 print("id=2: \n" + str(a))
-b = vali.get_project_by_name(name='Saturn_V')
+b = vali.get_project_by_name(name='Rocket__SaturnV')
 print("\nname='Saturn_V' \n" + str(b))
 
 print("\n\n--- GET FILTERED PROJECT LIST ---")
