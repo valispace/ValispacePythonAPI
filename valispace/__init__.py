@@ -109,9 +109,9 @@ class API:
             raise Exception("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags)")
 
         if type in ('component', 'vali', 'textvali'):
-        	url = type + 's/' # add an s to the end to get to the right endpoint
+            url = type + 's/' # add an s to the end to get to the right endpoint
         else:
-			url = type + '/'
+            url = type + '/'
 
         get_data = self.get(url)
 
@@ -269,11 +269,11 @@ class API:
             raise Exception("VALISPACE-ERROR: Could not retrieve Vali value.")
 
     # def create_vali(parent=None, type=None, shortname=None, description=None, formula=None, margin_plus=None,
-    # 		margin_minus=None, minimum=None, maximum=None, reference=None, tags=None, data={}):
-    # 	"""
-    # 	Creates a new Vali.
-    # 	"""
-    # 	# TBD...
+    #         margin_minus=None, minimum=None, maximum=None, reference=None, tags=None, data={}):
+    #     """
+    #     Creates a new Vali.
+    #     """
+    #     # TBD...
 
 
     def update_vali(self, id, shortname=None, formula=None, data=None):
@@ -489,9 +489,9 @@ class API:
             raise Exception("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags).")
 
         if type in ('component', 'vali', 'textvali'):
-        	url = type + 's/' # Add an s to the end of the type for component, vali and textvali to get to the correct endpoint
+            url = type + 's/' # Add an s to the end of the type for component, vali and textvali to get to the correct endpoint
         else:
-			url = type + '/'
+            url = type + '/'
 
         # FIXME: (patrickyeon) special-casing this, but maybe this whole
         #        method is not required now that post() exists?
