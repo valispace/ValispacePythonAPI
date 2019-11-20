@@ -201,7 +201,11 @@ class API:
         """
         if project_name:
             project = self.get_project_by_name(project_name)
-            return self.get("project/{}/valinames/".format(project["id"]))
+            if project:
+                project = project[0]
+                return self.get("project/{}/valinames/".format(project["id"]))
+            else:
+                return None
         else:
             return self.get("valinames/")
 
