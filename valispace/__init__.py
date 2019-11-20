@@ -179,7 +179,7 @@ class API:
             url = self.__increment_url(url) + "tags__name={}".format(tag_name)
         if vali_marked_as_impacted:
             url = self.__increment_url(url) + "valis_marked_as_impacted={}".format(vali_marked_as_impacted)
-        
+
         try:
             return self.get(url)
         except Exception as e:
@@ -200,7 +200,7 @@ class API:
         :returns: JSON object.
         """
         if project_name:
-            project = get_project_by_name(project_name)
+            project = self.get_project_by_name(project_name)
             return self.get("project/{}/valinames/".format(project["id"]))
         else:
             return self.get("valinames/")
@@ -500,9 +500,15 @@ class API:
         if result.status_code == 201:
             print("Successfully updated Vali:\n" + str(data) + "\n")
         elif result.status_code == 204:
-            raise Exception("The server successfully processed the request, but is not returning any content (status code: 204)\n")
+            raise Exception(
+                "The server successfully processed the request, but is not "
+                "returning any content (status code: 204)\n"
+            )
         elif result.status_code == 500:
-            raise Exception("The server encountered an unexpected condition which prevented it from fulfilling the request (status code: 500)\n")
+            raise Exception(
+                "The server encountered an unexpected condition which "
+                "prevented it from fulfilling the request (status code: 500)\n"
+            )
         else:
             raise Exception("Invalid Request (status code: {}): {}\n".format(result.status_code, result.content))
 
@@ -514,7 +520,7 @@ class API:
         Posts data
         :param url: the relative url
         :param data: the data
-        :param \**kwargs: additional args passed to the request call
+        :param **kwargs: additional args passed to the request call
         :returns: JSON object.
         """
 
@@ -526,7 +532,7 @@ class API:
         Posts data
         :param url: the relative url
         :param data: the data
-        :param \**kwargs: additional args passed to the request call
+        :param **kwargs: additional args passed to the request call
         :returns: JSON object.
         """
 
@@ -539,7 +545,7 @@ class API:
         :param method: the method
         :param url: the relative url
         :param data: the data
-        :param \**kwargs: additional args passed to the request call
+        :param **kwargs: additional args passed to the request call
         :returns: JSON object.
         """
 
