@@ -341,8 +341,17 @@ class API:
         return json.loads(result.text)
 
 
-    def get_component_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None,
-            parent_id=None, parent_name=None, tag_id=None, tag_name=None):
+    def get_component_list(
+        self,
+        workspace_id=None,
+        workspace_name=None,
+        project_id=None,
+        project_name=None,
+        parent_id=None,
+        parent_name=None,
+        tag_id=None,
+        tag_name=None,
+    ):
         """
         Returns JSON with all the Components that match the input arguments.
         Inputs are integers for IDs and strings for names.
@@ -377,7 +386,7 @@ class API:
         elif workspace_name:
             url = self.__increment_url(url) + "workspace__name={}".format(workspace_name)
         elif project_id:
-            url = self.__increment_url(url) + "project__id={}".format(project_id)
+            url = self.__increment_url(url) + "project={}".format(project_id)
         elif project_name:
             url = self.__increment_url(url) + "project__name={}".format(project_name)
         elif parent_id:
