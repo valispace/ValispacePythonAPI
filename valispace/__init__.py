@@ -203,11 +203,11 @@ class API:
             project = self.get_project_by_name(project_name)
             if project:
                 project = project[0]
-                return self.get("project/{}/valinames/".format(project["id"]))
+                return self.get("valis/?_project={}".format(project["id"])) # HACK: changed to fetch all vali properties, not just name
             else:
                 return None
         else:
-            return self.get("valinames/")
+            return self.get("valis/") # HACK: changed to fetch all vali properties, not just name
 
 
     def get_vali(self, id):
