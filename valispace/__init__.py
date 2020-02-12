@@ -425,14 +425,17 @@ class API:
         if type(project_name) != str:
             raise Exception("VALISPACE-ERROR: The function requires a valid Project name (str) as argument.")
 
-        url = "components/?unique_name={}&project__name={}".format(unique_name, project_name)
-        response = self.get(url)
-        num_results = len(response)
-
-        print("num_results: ", num_results)
+        project = self.get_project_by_name(name=project_name)
+        results = []
+        component_list = self.get_component_list(project_name=project_name)
+        for entry in component_list:
+            if entry['unique_name'] == unique_name:
+                results.append(entry)
+                #return self.get("valis/{}/".format(entry["id"]))
+        num_results = len(results)
 
         if num_results == 1:
-            return response
+            return results[0]
         if num_results == 0:
             raise Exception("VALISPACE-ERROR: A Component with this name does not exist. Please check for typos.")
         else:
