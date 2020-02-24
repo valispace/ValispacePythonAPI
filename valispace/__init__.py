@@ -166,11 +166,12 @@ class API:
         if workspace_name:
             url = self.__increment_url(url) + "parent__project__workspace__name={}".format(workspace_name)
         if project_id:
-            url = self.__increment_url(url) + "parent__project__id={}".format(project_id)
+            url = self.__increment_url(url) + "_project={}".format(project_id)
         if project_name:
-            url = self.__increment_url(url) + "parent__project__name={}".format(project_name)
+            project = self.get_project_by_name(project_name)
+            url = self.__increment_url(url) + "_project={}".format(project[0]['id'])
         if parent_id:
-            url = self.__increment_url(url) + "parent__id={}".format(parent_id)
+            url = self.__increment_url(url) + "parent={}".format(parent_id)
         if parent_name:
             url = self.__increment_url(url) + "parent__unique_name={}".format(parent_name)
         if tag_id:
@@ -203,11 +204,11 @@ class API:
             project = self.get_project_by_name(project_name)
             if project:
                 project = project[0]
-                return self.get("valis/?_project={}".format(project["id"])) # HACK: changed to fetch all vali properties, not just name
+                return self.get("valis/?fields=id,name&_project={}".format(project["id"]))
             else:
                 return None
         else:
-            return self.get("valis/") # HACK: changed to fetch all vali properties, not just name
+            return self.get("valis/?fields=id,name")
 
 
     def get_vali(self, id):
