@@ -22,7 +22,7 @@ class API:
     ]
 
 
-    def __init__(self, url=None, username=None, password=None, keep_credentials=False):
+    def __init__(self, url=None, username=None, password=None, keep_credentials=False, warn_https=True):
         print("\nAuthenticating Valispace...\n")
         if url is None:
             url = six.moves.input('Your Valispace url: ')
@@ -33,7 +33,7 @@ class API:
             url = 'https://' + url
 
         # Check for SSL connection before sending the username and password.
-        if url[:5] != "https":
+        if warn_https and url[:5] != "https":
             sys.stdout.write("Are you sure you want to use a non-SSL connection? "
                 "This will expose your password to the network and might be a significant security risk [y/n]: ")
             while True:
