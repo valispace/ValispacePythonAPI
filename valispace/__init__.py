@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
 import getpass
 import json
 import requests
@@ -19,6 +18,9 @@ class API:
         'reference', 'margin_plus', 'margin_minus', 'unit',
         'formula', 'description', 'parent', 'tags', 'shortname',
         'minimum', 'maximum',
+    ]
+    _writable_req_fields = [
+        'text',
     ]
 
 
@@ -121,6 +123,50 @@ class API:
 
         return return_dictionary
 
+    def get_requirements_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None, parent_id=None,
+            parent_name=None, tag_id=None, tag_name=None):
+        """
+        Returns JSON with all the Requirements that mach the input arguments.
+        Inputs are integers for IDs and strings for names.
+        Use the component 'unique_name' (not the 'name') in the parent_name argument.
+        """
+        if workspace_id:
+            try:
+                workspace_id = int(workspace_id)
+            except:
+                raise Exception("VALISPACE-ERROR: Workspace id must be an integer.")
+
+        if project_id:
+            try:
+                project_id = int(project_id)
+            except:
+                raise Exception("VALISPACE-ERROR: Project id must be an integer")
+
+        if tag_id:
+            try:
+                tag_id = int(tag_id)
+            except:
+                raise Exception("VALISPACE-ERROR: Tag id must be an integer")
+
+        # Construct URL.
+        url = "requirements/?"
+        if workspace_id:
+            url += "parent__project__workspace={}".format(workspace_id)
+        if workspace_name:
+            url = self.__increment_url(url) + "parent__project__workspace__name={}".format(workspace_name)
+        if project_id:
+            url = self.__increment_url(url) + "_project={}".format(project_id)
+        if project_name:
+            project = self.get_project_by_name(project_name)
+            url = self.__increment_url(url) + "_project={}".format(project[0]['id'])
+
+
+        try:
+            return self.get(url)
+        except Exception as e:
+            print('Something went wrong with the request. Details: {}'.format(e))
+
+
 
     def get_vali_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None, parent_id=None,
             parent_name=None, tag_id=None, tag_name=None, vali_marked_as_impacted=None):
@@ -221,6 +267,15 @@ class API:
             raise Exception("VALISPACE-ERROR: The function requires an ID (int) as parameter.")
         return self.get("valis/{}/".format(id))
 
+    def get_requirement(self, id):
+        """
+        Returns JSON of a unique Requirement.
+        :param id: ID of the Requirement to fetch.
+        :returns: JSON object.
+        """
+        if type(id) != int:
+            raise Exception("VALISPACE-ERROR: The function requires an ID (int) as parameter.")
+        return self.get("requirements/{}/".format(id))
 
     def get_vali_by_name(self, vali_name, project_name):
         """
@@ -306,6 +361,31 @@ class API:
             raise Exception("You have not entered any valid fields. Here is a list of all fields \
                 that can be updated:\n{}.".format(", ".join(self._writable_vali_fields)))
         url = "valis/{}/".format(id)
+        return self.request('PATCH', url, data=data)
+
+    def update_requirement(self, id, text=None, data=None):
+        """
+        Finds the Requirements that corresponds to the input id
+        and updates it with the input shortname, formula and/or data.
+        """
+        if data == None :
+            data = {}
+        elif type(data) != dict:
+            raise Exception('VALISPACE-ERROR: data needs to be a dictionary. To update requirement text use "text"')
+
+        if not id:
+            raise Exception("VALISPACE-ERROR: You need to pass an ID.")
+
+        if not text and not data:
+            raise Exception("VALISPACE-ERROR: You have to pass data to update.")
+
+        # Write Requirement.
+        if text:
+            data["text"] = text
+        if not data:
+            raise Exception("You have not entered any valid fields. Here is a list of all fields \
+                that can be updated:\n{}.".format(", ".join(self._writable_req_fields)))
+        url = "requirements/{}/".format(id)
         return self.request('PATCH', url, data=data)
 
 
