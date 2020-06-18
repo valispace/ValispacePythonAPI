@@ -1,12 +1,14 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
+
 import getpass
 import json
 import requests
 import sys
 import six
 import re
+
 
 
 class API:
@@ -123,12 +125,11 @@ class API:
 
         return return_dictionary
 
-    def get_requirements_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None, parent_id=None,
-            parent_name=None, tag_id=None, tag_name=None):
+    def get_requirement_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None,
+            tag_id=None, tag_name=None):
         """
         Returns JSON with all the Requirements that mach the input arguments.
         Inputs are integers for IDs and strings for names.
-        Use the component 'unique_name' (not the 'name') in the parent_name argument.
         """
         if workspace_id:
             try:
@@ -151,22 +152,57 @@ class API:
         # Construct URL.
         url = "requirements/?"
         if workspace_id:
-            url += "parent__project__workspace={}".format(workspace_id)
+            url += "workspace={}".format(workspace_id)
         if workspace_name:
-            url = self.__increment_url(url) + "parent__project__workspace__name={}".format(workspace_name)
+            url = self.__increment_url(url) + "workspace__name={}".format(workspace_name)
         if project_id:
-            url = self.__increment_url(url) + "_project={}".format(project_id)
+            url = self.__increment_url(url) + "project={}".format(project_id)
         if project_name:
             project = self.get_project_by_name(project_name)
-            url = self.__increment_url(url) + "_project={}".format(project[0]['id'])
+            url = self.__increment_url(url) + "project={}".format(project[0]['id'])
 
-
+        
         try:
             return self.get(url)
         except Exception as e:
             print('Something went wrong with the request. Details: {}'.format(e))
 
+    def get_specification_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None,
+            ):
+        """
+        Returns JSON with all the Specifications that mach the input arguments.
+        Inputs are integers for IDs and strings for names.
+        """
+        if workspace_id:
+            try:
+                workspace_id = int(workspace_id)
+            except:
+                raise Exception("VALISPACE-ERROR: Workspace id must be an integer.")
 
+        if project_id:
+            try:
+                project_id = int(project_id)
+            except:
+                raise Exception("VALISPACE-ERROR: Project id must be an integer")
+
+
+        # Construct URL.
+        url = "requirements/specifications/?"
+        if workspace_id:
+            url += "workspace={}".format(workspace_id)
+        if workspace_name:
+            url = self.__increment_url(url) + "workspace__name={}".format(workspace_name)
+        if project_id:
+            url = self.__increment_url(url) + "project={}".format(project_id)
+        if project_name:
+            project = self.get_project_by_name(project_name)
+            url = self.__increment_url(url) + "project={}".format(project[0]['id'])
+        
+
+        try:
+            return self.get(url)
+        except Exception as e:
+            print('Something went wrong with the request. Details: {}'.format(e))
 
     def get_vali_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None, parent_id=None,
             parent_name=None, tag_id=None, tag_name=None, vali_marked_as_impacted=None):
@@ -208,14 +244,14 @@ class API:
         # Construct URL.
         url = "valis/?"
         if workspace_id:
-            url += "parent__project__workspace={}".format(workspace_id)
+            url += "workspace={}".format(workspace_id)
         if workspace_name:
-            url = self.__increment_url(url) + "parent__project__workspace__name={}".format(workspace_name)
+            url = self.__increment_url(url) + "workspace__name={}".format(workspace_name)
         if project_id:
-            url = self.__increment_url(url) + "_project={}".format(project_id)
+            url = self.__increment_url(url) + "project={}".format(project_id)
         if project_name:
             project = self.get_project_by_name(project_name)
-            url = self.__increment_url(url) + "_project={}".format(project[0]['id'])
+            url = self.__increment_url(url) + "project={}".format(project[0]['id'])
         if parent_id:
             url = self.__increment_url(url) + "parent={}".format(parent_id)
         if parent_name:
@@ -226,7 +262,7 @@ class API:
             url = self.__increment_url(url) + "tags__name={}".format(tag_name)
         if vali_marked_as_impacted:
             url = self.__increment_url(url) + "valis_marked_as_impacted={}".format(vali_marked_as_impacted)
-
+        
         try:
             return self.get(url)
         except Exception as e:
@@ -400,7 +436,7 @@ class API:
         #        printing of returned values on error, but I suspect
         #        that is really better handled by the normal error-
         #        handling path and getting rid of these print()s
-        print(url)
+        #print(url)
         result = self._session.get(self._url + url, data=data)
         if result.status_code != 200:
             print(result.text)
@@ -414,7 +450,7 @@ class API:
 
         url = "alexa_what_if/{}/{}/{}/".format(vali_name, target_name, value)
         # FIXME: (patrickyeon) same comment as on impact_analysis()
-        print(url)
+        #print(url)
         result = self._session.get(self._url + url)
         if result.status_code != 200:
             print(result.text)
