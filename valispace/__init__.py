@@ -294,7 +294,7 @@ class API:
         if not id:
             raise Exception("VALISPACE-ERROR: You need to pass an ID.")
 
-        if not shortname and not formula and not data:
+        if not shortname and not data and formula is None:
             raise Exception("VALISPACE-ERROR: You have to pass data to update.")
 
         # Write Vali.
