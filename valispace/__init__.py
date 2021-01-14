@@ -166,10 +166,10 @@ class API:
         if workspace_name:
             url = self.__increment_url(url) + "parent__project__workspace__name={}".format(workspace_name)
         if project_id:
-            url = self.__increment_url(url) + "_project={}".format(project_id)
+            url = self.__increment_url(url) + "project={}".format(project_id)
         if project_name:
             project = self.get_project_by_name(project_name)
-            url = self.__increment_url(url) + "_project={}".format(project[0]['id'])
+            url = self.__increment_url(url) + "project={}".format(project[0]['id'])
         if parent_id:
             url = self.__increment_url(url) + "parent={}".format(parent_id)
         if parent_name:
