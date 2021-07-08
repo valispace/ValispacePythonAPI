@@ -30,19 +30,6 @@ class API:
 
         url = "https://" + deployment + ".valispace.com"
 
-        # Prompting user for SSL connection before sending the username and password.
-        sys.stdout.write("Choose the type of connection to use: \n"
-                        "[1]. SSL secured connection (Default)\n"
-                        "[2]. Standard non-SSL Connection (This will expose your password to the network and might be a significant security risk) \n")
-        while True:
-            print("Choice : ", end="")
-            choice = six.moves.input().lower()
-            if choice == "2":
-                url = url.replace("https", "http")
-                break
-            if choice == "1":
-                break
-
         self._url = url + '/rest/'
         self._oauth_url = url + '/o/token/'
         self._session = requests.Session()
