@@ -7,7 +7,7 @@ import csv, json
 
 
 deployment = input("Deployment Name:")
-valispace = valispace.API(url="https://"+deployment+".valispace.com/")
+valispace = valispace.API(deployment=deployment)
 
 
 ## Add File path e.g. - Make sure you use /, not \, to divide folders

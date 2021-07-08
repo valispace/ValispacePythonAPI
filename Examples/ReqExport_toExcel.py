@@ -6,7 +6,7 @@ username = ""
 password = ""
 deployment_name = ""
 
-valispace = valispace.API(url='https://'+deployment_name+'.valispace.com', username=username, password=password)
+valispace = valispace.API(deployment="demo" username=username, password=password)
 
 
 workbook = xlsxwriter.Workbook('OutputFilename.xlsx')

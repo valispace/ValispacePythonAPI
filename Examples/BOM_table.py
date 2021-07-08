@@ -3,7 +3,7 @@ import valispace
 import csv
 
 deployment = input("Deployment Name:")
-valispace = valispace.API(url="https://"+deployment+".valispace.com/")
+valispace = valispace.API(deployment=deployment)
 
 
 # ID of the main component to start the BOM from.

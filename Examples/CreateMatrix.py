@@ -1,7 +1,7 @@
 import valispace
 
 deployment = input("Deployment Name:")
-valispace = valispace.API(url="https://"+deployment+".valispace.com/")
+valispace = valispace.API(deployment=deployment)
 
 
 Matrix = {

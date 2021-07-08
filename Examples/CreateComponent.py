@@ -1,8 +1,7 @@
 import valispace
 
 deployment = input("Deployment Name:")
-valispace = valispace.API(url="https://"+deployment+".valispace.com/")
-
+valispace = valispace.API(deployment=deployment)
 
 # The ID of the Parent Component; If it is at the highest level, parent is null, but project need to be specified.
 parent_component = 
