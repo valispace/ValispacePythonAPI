@@ -22,27 +22,26 @@ class API:
     ]
 
 
-    def __init__(self, url=None, username=None, password=None, keep_credentials=False, warn_https=True):
+    def __init__(self, deployment=None, username=None, password=None, keep_credentials=False, warn_https=True):
         print("\nAuthenticating Valispace...\n")
-        if url is None:
-            url = six.moves.input('Your Valispace url: ')
+        
+        if deployment is None:
+            deployment = six.moves.input('Your Valispace deployment name : ')
 
-        url = url.strip().rstrip("/")
+        url = "https://" + deployment + ".valispace.com"
 
-        if not (url.startswith('http://') or url.startswith('https://')):
-            url = 'https://' + url
-
-        # Check for SSL connection before sending the username and password.
-        if warn_https and url[:5] != "https":
-            sys.stdout.write("Are you sure you want to use a non-SSL connection? "
-                "This will expose your password to the network and might be a significant security risk [y/n]: ")
-            while True:
-                choice = six.moves.input().lower()
-                if choice == "y":
-                    break
-                if choice == "n":
-                    return
-                print("Please answer 'y' or 'n'")
+        # Prompting user for SSL connection before sending the username and password.
+        sys.stdout.write("Choose the type of connection to use: \n"
+                        "[1]. SSL secured connection (Default)\n"
+                        "[2]. Standard non-SSL Connection (This will expose your password to the network and might be a significant security risk) \n")
+        while True:
+            print("Choice : ", end="")
+            choice = six.moves.input().lower()
+            if choice == "2":
+                url = url.replace("https", "http")
+                break
+            if choice == "1":
+                break
 
         self._url = url + '/rest/'
         self._oauth_url = url + '/o/token/'
