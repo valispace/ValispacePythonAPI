@@ -28,10 +28,10 @@ import valispace
 valispace = valispace.API()
 ```
 
-At this step you will need to enter your Valispace url (e.g. <https://demo.valispace.com>), username and password for authentication, or use the one line function:
+At this step you will need to enter your Valispace deployment name (e.g. <https://[demo].valispace.com> -> deployment = demo), username and password for authentication, or use the one line function:
 
 ```python
-valispace = valispace.API(url='https://demo.valispace.com', username='your_user_name', password='******')
+valispace = valispace.API(deployment='demo', username='your_user_name', password='******')
 ```
 
 Then use the Valispace API like this:
@@ -224,7 +224,7 @@ data *(optional)* | *{"name": "example"}*
 
 ```python
 try:
-    v = valispace.API('http://demo.valispace.com/', 'user', 'pass')
+    v = valispace.API('demo', 'user', 'pass')
     projects = v.request('GET', 'project/')
 except:
     print('Error')
