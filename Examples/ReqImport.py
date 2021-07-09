@@ -26,4 +26,4 @@ def import_req(csvFilePath, specification_ID):
 
 
 
-import_req(csvFilePath, specification_ID)SSSS
+import_req(csvFilePath, specification_ID)
