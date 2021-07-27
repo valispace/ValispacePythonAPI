@@ -6,7 +6,7 @@ import xlsxwriter
 # START OF CONFIG -------------------------------------
 deployment_name = ""
 
-fileName = "Export" 
+fileName = "" 
 
 # Project ID
 project_ID = 
@@ -15,8 +15,8 @@ project_ID =
 specification_ID = 
 
 # Target File - Add or remove any field you want to get exported.
-# Not yet implemented - attachments, custom compliance, verification tags 
 fields = ['identifier', "title", "text", "specification", "rationale", "state", "type", "parents", "children", 'verification method', 'components','closeout reference', 'status','verification comment', 'verified on', 'verified by']
+
 
 standardSeparator = ', '
 verificationMethodSeparator = "\n"
@@ -222,24 +222,24 @@ def main():
 											row['verified by'] += user['first_name'] + ' ' + user['last_name']
 
 
-						if 'status' in fields:
-							row["status"] = VMComponentProperties(componentVM, row['status'], 'status', "-")
-					
-						if 'verification comment' in fields:
-							row["verification comment"] = VMComponentProperties(componentVM, row['verification comment'], 'comment', "")
+							if 'status' in fields:
+								row["status"] = VMComponentPropertiesDirect(componentVM, row['status'], 'status', "-")
 						
-						if 'custom compliance' in fields:
-							row["custom compliance"] = VMComponentPropertiesID(componentVM, row['custom compliance'], 'custom_compliance_statement', complianceList, "")
-						if 'custom compliance comment' in fields:
-							row["custom compliance comment"] = VMComponentPropertiesDirect(componentVM, row['custom compliance comment'], 'custom_compliance_comment', "")
-						if 'verification tags' in fields:
-							if row["verification tags"] != "": row["verification tags"] += verificationMethodSeparator
-							output = ""
-							tagsList = componentVM['tags']
-							for item in tagsList:
-								if output != "" : output += standardSeparator
-								output += item
-							row["verification tags"] += output
+							if 'verification comment' in fields:
+								row["verification comment"] = VMComponentPropertiesDirect(componentVM, row['verification comment'], 'comment', "")
+							
+							if 'custom compliance' in fields:
+								row["custom compliance"] = VMComponentPropertiesID(componentVM, row['custom compliance'], 'custom_compliance_statement', complianceList, "")
+							if 'custom compliance comment' in fields:
+								row["custom compliance comment"] = VMComponentPropertiesDirect(componentVM, row['custom compliance comment'], 'custom_compliance_comment', "")
+							if 'verification tags' in fields:
+								if row["verification tags"] != "": row["verification tags"] += verificationMethodSeparator
+								output = ""
+								tagsList = componentVM['tags']
+								for item in tagsList:
+									if output != "" : output += standardSeparator
+									output += item
+								row["verification tags"] += output
 
 
 				
