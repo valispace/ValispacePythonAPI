@@ -4,7 +4,7 @@
 
 import asyncio
 import typing
-from logging import Logger
+import logging
 
 import httpx
 
@@ -14,7 +14,7 @@ Valispace public python API, version 2
 """
 
 
-__DEBUG = True
+logging.basicConfig(level=logging.DEBUG)
 
 
 class ValispaceException(Exception):
@@ -48,11 +48,10 @@ class Valispace:
                 url = "https://" + url
 
         t = options.get("logger", None) if options is not None else None
-        if t is None and not isinstance(t, Logger):
-            import logging
-            self.logger: Logger = logging.getLogger("console")
+        if t is None and not isinstance(t, logging.Logger):
+            self.logger: logging.Logger = logging.getLogger("console")
         else:
-            self.logger: Logger = typing.cast(Logger, t)
+            self.logger: logging.Logger = typing.cast(logging.Logger, t)
 
         self.client_id: str = typing.cast(str, options.get("client_id", "ValispaceREST")) if options is not None else "ValispaceREST"
 
@@ -63,14 +62,21 @@ class Valispace:
 
         self.client = httpx.AsyncClient()
 
-        result = asyncio.run(self.client.post(self.__oauth_url, data={
+        post_data = {
             "grant_type": "password",
             "username": username,
             "password": password,
             "client_id": self.client_id,
-        }), debug=__DEBUG)
+        }
+
+        self.logger.debug(post_data)
+
+        result = asyncio.run(self.client.post(self.__oauth_url, data=post_data, headers={}), debug=True)
 
         self.logger.info(f"result: {result}")
+
+    def __del__(self):
+        asyncio.run(self.client.aclose(), debug=True)
 
 
 class Project:
