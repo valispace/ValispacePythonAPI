@@ -1,4 +1,6 @@
 # This code generates a csv file with a System breakdown, with each level divided in columns, and the selected properties.
+# This Script doesn't work with Matrices yet.
+
 import valispace
 import csv
 
@@ -19,7 +21,7 @@ fileName = "BOM.csv"
 # but the number of elements in this list, is the depth you go with the BOM.
 Levels = ["Level 1", "Level 2", "Level 3", "Level 4"]
 # Headers - Which Vali you want to be added to the BOM.
-Valis = ["Mass", "Cost", "Power"]
+Valis = ["Mass", "Cost"]
 Textvalis = ["Material", "Part_Number"]
 fields = Levels + Valis + Textvalis
 
@@ -39,7 +41,7 @@ def writeLine(component_id, currentLevel):
 	row = {}
 	
 	if currentLevel <= len(Levels):
-		row["Level "+str(currentLevel)]= component["name"]
+		row[Levels[currentLevel-1]]= component["name"]
 
 	for field in Valis:
 		row[field] = writeField(componentValis, field, "value")
