@@ -604,6 +604,29 @@ class API:
         except:
             raise Exception("VALISPACE-ERROR: Unknown error.")
 
+    def sum_mat_mat(self, matrix_1, matrix_2):
+        pass
+
+    def sum_mat_vali(self, matrix, vali):
+        pass
+
+    def multiply_mat_mat(self, matrix_1, matrix_2):
+        pass
+
+    def multiply_mat_vali(self, mat, vali):
+        pass
+
+    def subtract_mat_mmt(self, matrix_1, matrix_2):
+        pass
+
+    def subtract_mat_vali(self, matrix, vali):
+        pass
+
+    def divide_mat_mat(self, matrix_1, matrix_2):
+        pass
+
+    def divide_mat_vali(self, matrix, vali):
+        pass
 
     def get_matrix_str(self, id):
         """
