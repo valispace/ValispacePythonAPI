@@ -8,6 +8,8 @@ import requests
 import sys
 import six
 import re
+import time
+import logging
 
 
 class API:
@@ -603,30 +605,336 @@ class API:
             raise Exception("VALISPACE-ERROR: Matrix with id {} not found.".format(id))
         except:
             raise Exception("VALISPACE-ERROR: Unknown error.")
+    
+    def get_full_matrix_object(self, id):
 
-    def sum_mat_mat(self, matrix_1, matrix_2):
-        pass
+        matrix = self.get(f'matrices/{id}/')
+        with open('matrix_file', 'w') as f:
+            json.dump(matrix, f)
+        
+        return matrix
 
-    def sum_mat_vali(self, matrix, vali):
-        pass
+    def matrix_sum(self,  matrix, object, new_name : str, parent_id=None):
+        
+        if 'cells' in matrix.keys() and 'cells' in object.keys():
 
-    def multiply_mat_mat(self, matrix_1, matrix_2):
-        pass
+            ### Checking if dimensions are the same
+            if matrix["number_of_columns"] != object["number_of_columns"] or matrix["number_of_rows"] != object["number_of_rows"]:
+                raise Exception("VALISPACE-ERROR: Matrices do not have the dimension")
+            
+            ### Setting referring_to attribute
+            if matrix["referring_to"] != object["referring_to"] and object["referring_to"] is not None:
+                raise Exception("VALISPACE-ERROR: Matrices do not refer to the same Mode")
+            elif matrix["referring_to"] != object["referring_to"] and matrix["referring_to"] is not None:
+                raise Exception("VALISPACE-ERROR: Matrices do not refer to the same Mode")
 
-    def multiply_mat_vali(self, mat, vali):
-        pass
+            ### if neither has a reference { "referring_to" : None }
+            referring_to = matrix["referring_to"] if matrix["referring_to"] is not None else object["referring_to"]
+            
+            ### Checking for the parent_id
+            parent = parent_id if parent_id is not None else matrix["parent"]
 
-    def subtract_mat_mmt(self, matrix_1, matrix_2):
-        pass
+            ### Create destination Matrix
+            new_matrix = {
+                'name': new_name,
+                'parent': parent,
+                'unit': "",
+                'referring_to' : referring_to,
+                "number_of_rows": matrix["number_of_rows"],
+                "number_of_columns": matrix["number_of_columns"]
+            }
 
-    def subtract_mat_vali(self, matrix, vali):
-        pass
+            posted_matrix = self.request('POST', 'matrices/', new_matrix)
 
-    def divide_mat_mat(self, matrix_1, matrix_2):
-        pass
+            ### Sleeping to let the backend make calculations
+            time.sleep(2)
 
-    def divide_mat_vali(self, matrix, vali):
-        pass
+            for x, cell in enumerate(matrix["cells"]):
+                for y, id in enumerate(cell):
+
+                    data = { 'formula': f'${id}+${object["cells"][x][y]}'}
+                    logging.info(data)
+
+                    url = f'valis/{posted_matrix["cells"][x][y]}/'
+                    #logging.info(url)
+
+                    res = self.request('PATCH', url, data)
+                    #logging.info(res)
+
+        elif 'cells' in matrix.keys() and 'cells' not in object.keys():
+            
+            ### Checking for the parent_id
+            parent = parent_id if parent_id is not None else matrix["parent"]
+            ### Create destination Matrix
+            new_matrix = {
+                'name': new_name,
+                'parent': parent,
+                'unit': matrix["unit"],
+                'referring_to' : matrix["referring_to"],
+                "number_of_rows": matrix["number_of_rows"],
+                "number_of_columns": matrix["number_of_columns"]
+            }
+            posted_matrix = self.request('POST', 'matrices/', new_matrix)
+
+            ### Sleeping to let the backend make calculations
+            time.sleep(2)
+
+            for x, cell in enumerate(matrix["cells"]):
+                for y, id in enumerate(cell):
+                    data = { 'formula': f'${id}+${object.get("id")}'}
+                    logging.info(data)
+
+                    url = f'valis/{posted_matrix["cells"][x][y]}/'
+                    #logging.info(url)
+
+                    res = self.request('PATCH', url, data)
+                    #logging.info(res)
+        else:
+            raise Exception("VALISPACE_ERROR: No a matrix")
+
+        return posted_matrix
+
+    def matrix_subtract(self, matrix, object, new_name : str, parent_id=None):
+        
+        if 'cells' in matrix.keys() and 'cells' in object.keys():
+
+            ### Checking if dimensions are the same
+            if matrix["number_of_columns"] != object["number_of_columns"] or matrix["number_of_rows"] != object["number_of_rows"]:
+                raise Exception("VALISPACE-ERROR: Matrices do not have the dimension")
+            
+            ### Setting referring_to attribute
+            if matrix["referring_to"] != object["referring_to"] and object["referring_to"] is not None:
+                raise Exception("VALISPACE-ERROR: Matrices do not refer to the same Mode")
+            elif matrix["referring_to"] != object["referring_to"] and matrix["referring_to"] is not None:
+                raise Exception("VALISPACE-ERROR: Matrices do not refer to the same Mode")
+
+            ### if neither has a reference { "referring_to" : None }
+            referring_to = matrix["referring_to"] if matrix["referring_to"] is not None else object["referring_to"]
+            
+            ### Checking for the parent_id
+            parent = parent_id if parent_id is not None else matrix["parent"]
+
+            ### Create destination Matrix
+            new_matrix = {
+                'name': new_name,
+                'parent': parent,
+                'unit': "",
+                'referring_to' : referring_to,
+                "number_of_rows": matrix["number_of_rows"],
+                "number_of_columns": matrix["number_of_columns"]
+            }
+
+            posted_matrix = self.request('POST', 'matrices/', new_matrix)
+
+            ### Sleeping to let the backend make calculations
+            time.sleep(2)
+
+            for x, cell in enumerate(matrix["cells"]):
+                for y, id in enumerate(cell):
+
+                    data = { 'formula': f'${id}-${object["cells"][x][y]}'}
+                    logging.info(data)
+
+                    url = f'valis/{posted_matrix["cells"][x][y]}/'
+                    #logging.info(url)
+
+                    res = self.request('PATCH', url, data)
+                    #logging.info(res)
+
+        elif 'cells' in matrix.keys() and 'cells' not in object.keys():
+            
+            ### Checking for the parent_id
+            parent = parent_id if parent_id is not None else matrix["parent"]
+            ### Create destination Matrix
+            new_matrix = {
+                'name': new_name,
+                'parent': parent,
+                'unit': matrix["unit"],
+                'referring_to' : matrix["referring_to"],
+                "number_of_rows": matrix["number_of_rows"],
+                "number_of_columns": matrix["number_of_columns"]
+            }
+            posted_matrix = self.request('POST', 'matrices/', new_matrix)
+
+            ### Sleeping to let the backend make calculations
+            time.sleep(2)
+
+            for x, cell in enumerate(matrix["cells"]):
+                for y, id in enumerate(cell):
+                    data = { 'formula': f'${id}-${object.get("id")}'}
+                    logging.info(data)
+
+                    url = f'valis/{posted_matrix["cells"][x][y]}/'
+                    #logging.info(url)
+
+                    res = self.request('PATCH', url, data)
+                    #logging.info(res)
+        else:
+            raise Exception("VALISPACE_ERROR: No a matrix")
+
+        return posted_matrix
+
+    def matrix_division(self, matrix, object, new_name : str, parent_id=None):
+        
+        if 'cells' in matrix.keys() and 'cells' in object.keys():
+
+            ### Checking if dimensions are the same
+            if matrix["number_of_columns"] != object["number_of_columns"] or matrix["number_of_rows"] != object["number_of_rows"]:
+                raise Exception("VALISPACE-ERROR: Matrices do not have the dimension")
+            
+            ### Setting referring_to attribute
+            if matrix["referring_to"] != object["referring_to"] and object["referring_to"] is not None:
+                raise Exception("VALISPACE-ERROR: Matrices do not refer to the same Mode")
+            elif matrix["referring_to"] != object["referring_to"] and matrix["referring_to"] is not None:
+                raise Exception("VALISPACE-ERROR: Matrices do not refer to the same Mode")
+
+            ### if neither has a reference { "referring_to" : None }
+            referring_to = matrix["referring_to"] if matrix["referring_to"] is not None else object["referring_to"]
+            
+            ### Checking for the parent_id
+            parent = parent_id if parent_id is not None else matrix["parent"]
+
+            ### Create destination Matrix
+            new_matrix = {
+                'name': new_name,
+                'parent': parent,
+                'unit': "",
+                'referring_to' : referring_to,
+                "number_of_rows": matrix["number_of_rows"],
+                "number_of_columns": matrix["number_of_columns"]
+            }
+
+            posted_matrix = self.request('POST', 'matrices/', new_matrix)
+
+            ### Sleeping to let the backend make calculations
+            time.sleep(2)
+
+            for x, cell in enumerate(matrix["cells"]):
+                for y, id in enumerate(cell):
+
+                    data = { 'formula': f'${id}/${object["cells"][x][y]}'}
+                    logging.info(data)
+
+                    url = f'valis/{posted_matrix["cells"][x][y]}/'
+                    #logging.info(url)
+
+                    res = self.request('PATCH', url, data)
+                    #logging.info(res)
+
+        elif 'cells' in matrix.keys() and 'cells' not in object.keys():
+            
+            ### Checking for the parent_id
+            parent = parent_id if parent_id is not None else matrix["parent"]
+            ### Create destination Matrix
+            new_matrix = {
+                'name': new_name,
+                'parent': parent,
+                'unit': matrix["unit"],
+                'referring_to' : matrix["referring_to"],
+                "number_of_rows": matrix["number_of_rows"],
+                "number_of_columns": matrix["number_of_columns"]
+            }
+            posted_matrix = self.request('POST', 'matrices/', new_matrix)
+
+            ### Sleeping to let the backend make calculations
+            time.sleep(2)
+
+            for x, cell in enumerate(matrix["cells"]):
+                for y, id in enumerate(cell):
+                    data = { 'formula': f'${id}/${object.get("id")}'}
+                    logging.info(data)
+
+                    url = f'valis/{posted_matrix["cells"][x][y]}/'
+                    #logging.info(url)
+
+                    res = self.request('PATCH', url, data)
+                    #logging.info(res)
+        else:
+            raise Exception("VALISPACE_ERROR: Not a matrix")
+        
+        return posted_matrix
+
+    def matrix_mult(self, matrix, object, new_name : str, parent_id=None):
+        
+        if 'cells' in matrix.keys() and 'cells' in object.keys():
+
+            ### Checking if dimensions are the same
+            if matrix["number_of_columns"] != object["number_of_columns"] or matrix["number_of_rows"] != object["number_of_rows"]:
+                raise Exception("VALISPACE-ERROR: Matrices do not have the dimension")
+            
+            ### Setting referring_to attribute
+            if matrix["referring_to"] != object["referring_to"] and object["referring_to"] is not None:
+                raise Exception("VALISPACE-ERROR: Matrices do not refer to the same Mode")
+            elif matrix["referring_to"] != object["referring_to"] and matrix["referring_to"] is not None:
+                raise Exception("VALISPACE-ERROR: Matrices do not refer to the same Mode")
+
+            ### if neither has a reference { "referring_to" : None }
+            referring_to = matrix["referring_to"] if matrix["referring_to"] is not None else object["referring_to"]
+            
+            ### Checking for the parent_id
+            parent = parent_id if parent_id is not None else matrix["parent"]
+
+            ### Create destination Matrix
+            new_matrix = {
+                'name': new_name,
+                'parent': parent,
+                'unit': "",
+                'referring_to' : referring_to,
+                "number_of_rows": matrix["number_of_rows"],
+                "number_of_columns": matrix["number_of_columns"]
+            }
+
+            posted_matrix = self.request('POST', 'matrices/', new_matrix)
+
+            ### Sleeping to let the backend make calculations
+            time.sleep(2)
+
+            for x, cell in enumerate(matrix["cells"]):
+                for y, id in enumerate(cell):
+
+                    data = { 'formula': f'${id}*${object["cells"][x][y]}'}
+                    print(data)
+
+                    url = f'valis/{posted_matrix["cells"][x][y]}/'
+                    #logging.info(url)
+
+                    res = self.request('PATCH', url, data)
+                
+                time.sleep(1.25)    
+                
+
+        elif 'cells' in matrix.keys() and 'cells' not in object.keys():
+            
+            ### Checking for the parent_id
+            parent = parent_id if parent_id is not None else matrix["parent"]
+            ### Create destination Matrix
+            new_matrix = {
+                'name': new_name,
+                'parent': parent,
+                'unit': matrix["unit"],
+                'referring_to' : matrix["referring_to"],
+                "number_of_rows": matrix["number_of_rows"],
+                "number_of_columns": matrix["number_of_columns"]
+            }
+            posted_matrix = self.request('POST', 'matrices/', new_matrix)
+
+            ### Sleeping to let the backend make calculations
+            time.sleep(3)
+
+            for x, cell in enumerate(matrix["cells"]):
+                for y, id in enumerate(cell):
+                    data = { 'formula': f'${id}*${object.get("id")}'}
+                    logging.info(data)
+
+                    url = f'valis/{posted_matrix["cells"][x][y]}/'
+                    #logging.info(url)
+
+                    res = self.request('PATCH', url, data)
+                    #logging.info(res)
+        else:
+            raise Exception("VALISPACE_ERROR: No a matrix")
+    
+        return posted_matrix
 
     def get_matrix_str(self, id):
         """
