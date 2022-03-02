@@ -96,7 +96,7 @@ project_name | `valispace.get_vali_list(project_name='Saturn_V')`
 parent_id | `valispace.get_vali_list(parent_id=1)`
 parent_name | `valispace.get_vali_list(parent_name='Fan')`
 tag_id | `valispace.get_vali_list(tag_id=10)`
-tag_name | `valispace.get_vali_list(tag_id='example_tag')`
+tag_name | `valispace.get_vali_list(tag_name='example_tag')`
 vali_marked_as_impacted | `valispace.get_vali_list(vali_marked_as_impacted='10')`
 
 List of **Components** with the specified arguments:
