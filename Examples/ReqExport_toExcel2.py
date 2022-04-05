@@ -14,9 +14,9 @@ project_ID =
 # If you want to export all Specifications on that project, use 0 as the ID
 specification_ID =
 
-# Target File - Add or remove any field you want to get exported.
-# For Requirements attachments use 'attachments'
+# For requirements Attachments/Files use 'attachments'
 # For Verification Components attachments use 'cvm_attachments'
+# Target File - Add or remove any field you want to get exported.
 fields = ['identifier', "title", "text", "specification", "rationale", "state", "type", "parents", "children", 'verification method', 'components','closeout reference', 'status','verification comment', 'verified on', 'verified by', 'attachments', 'cvm_attachments']
 
 
@@ -88,6 +88,10 @@ if 'cvm_attachments' in fields:
 if 'owner' in fields or 'verified by' in fields:
 	userList = valispace.get('user')
 	idMappingName['users'] = userList
+# Generate Req Mapping - id to identifier
+# reqMapping = {}
+# for req in requirementList:
+# 	reqMapping[req["id"]] = req["identifier"]
 
 # Generate Req Mapping - id to identifier
 filesMapping = {}
@@ -189,6 +193,7 @@ def main():
 						if 'components' in fields:
 							if row["components"] != "": row["components"] += verificationMethodSeparator
 							if 'closeout reference' in fields and row["closeout reference"] != "" : row["closeout reference"] += verificationMethodSeparator
+							if 'cvm_attachments' in fields and row["cvm_attachments"] != "" : row["cvm_attachments"] += verificationMethodSeparator
 							if 'verified by' in fields and row["verified by"] != "" : row["verified by"] += verificationMethodSeparator
 
 							for componentVM in verification["component_vms"]:
@@ -214,14 +219,14 @@ def main():
 
 								if 'cvm_attachments' in fields:
 									if componentVM["vattachments"]:
-										if row["cvm_attachments"] != "" and not row["closeout reference"].endswith('\n'): row["closeout reference"] += componentsSeparator
+										if row["cvm_attachments"] != "" and not row["cvm_attachments"].endswith('\n'): row["cvm_attachments"] += componentsSeparator
 										cvm_attachment = next((attachment for attachment in cvm_attachmentList if attachment['id'] == componentVM["vattachments"][0]),None)
 										if cvm_attachment['target_type'] == 171: # File
-											row["cvm_attachments"] += next((object_['name'] for object_ in fileList if object_['id'] == cvm_attachment['object_id']), "")
+											row["cvm_attachments"] += next((object_['name'] for object_ in fileList if object_['id'] == cvm_attachment['target_id']), "")
 										if cvm_attachment['target_type'] == 82: # Analysis
-											row["cvm_attachments"] += next((object_['name'] for object_ in analysisList if object_['id'] == cvm_attachment['object_id']), "")
+											row["cvm_attachments"] += next((object_['name'] for object_ in analysisList if object_['id'] == cvm_attachment['target_id']), "")
 									else:
-										if row["cvm_attachments"] != "" and not row["closeout reference"].endswith('\n'): row["closeout reference"] += componentsSeparator
+										if row["cvm_attachments"] != "" and not row["cvm_attachments"].endswith('\n'): row["cvm_attachments"] += componentsSeparator
 
 								if 'verified by' in fields:
 									user = next((object_ for object_ in userList if object_['id'] == componentVM["verified_by"]), "")
@@ -258,6 +263,19 @@ def main():
 
 			for field in fields:
 				worksheet.write(row_num, fields.index(field), row[field], cell_format)
+
+			# # Add File URL if there is any file attached to this requirement
+			# if req["id"] in filesMapping:
+			# 	for file in filesMapping[req["id"]]:
+			# 		if row["attachments"] != "" : row["attachments"] += "\n"
+			# 		row["attachments"] += file
+
+
+
+			# col = 0
+			# for field in fields:
+			# worksheet.write(row_num, col, row[field], cell_format)
+			# 	col += 1
 
 			row_num += 1
 
