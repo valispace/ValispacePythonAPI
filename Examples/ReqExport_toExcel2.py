@@ -17,12 +17,13 @@ specification_ID =
 # For requirements Attachments/Files use 'attachments'
 # For Verification Components attachments use 'cvm_attachments'
 # Target File - Add or remove any field you want to get exported.
-fields = ['identifier', "title", "text", "specification", "rationale", "state", "type", "parents", "children", 'verification method', 'components','closeout reference', 'status','verification comment', 'verified on', 'verified by', 'attachments', 'cvm_attachments']
+fields = ['identifier', "title", "text", "specification", "rationale", "applicability", "state", "type", "parents", "children", 'verification method', 'components','closeout reference', 'status','verification comment', 'verified on', 'verified by', 'attachments', 'cvm_attachments']
 
 
 standardSeparator = ', '
 verificationMethodSeparator = "\n"
 componentsSeparator = ', '
+applicabilitySeparator = ', '
 
 orderReqsBy = 'identifier'
 
@@ -41,6 +42,11 @@ cell_format.set_text_wrap()
 # Get Complete List of Requirements with VM - The specification will be filtered in the for loop
 requirementList = valispace.get("requirements/complete/?project="+str(project_ID)+"&clean_text=text,comment")
 requirementList = sorted(requirementList, key = lambda i: i[orderReqsBy])
+applicabilityList = valispace.get("requirements/applicability-conditions/?project="+str(project_ID))
+applicabilityMap_req = {applicability['requirement']:applicability for applicability in applicabilityList}
+componentTypeList = valispace.get("components/types/")
+componentTypeMap = {compType['id']:compType['name'] for compType in componentTypeList}
+
 
 idMappingName = {}
 fileList = None
@@ -96,20 +102,21 @@ if 'owner' in fields or 'verified by' in fields:
 # Generate Req Mapping - id to identifier
 filesMapping = {}
 req_to_files = {}
-for file in fileList:
-	# Object Id of a File represents the parent to which the file is attached to
-	if file["file_type"] == 1 or file["file_type"] == 2:
-		if file["object_id"] not in filesMapping:
-			filesMapping[file["object_id"]] = [file["name"]]
-		else:
-			filesMapping[file["object_id"]].append(file["name"])
-	# Reference Link to another file
-	if file["file_type"] == 3:
-		file_name = [obj for obj in fileList if obj['id']==file["reference_file"]][0]['name']
-		if file["object_id"] not in filesMapping:
-			filesMapping[file["object_id"]] = [file_name]
-		else:
-			filesMapping[file["object_id"]].append(file_name)
+if fileList:
+	for file in fileList:
+		# Object Id of a File represents the parent to which the file is attached to
+		if file["file_type"] == 1 or file["file_type"] == 2:
+			if file["object_id"] not in filesMapping:
+				filesMapping[file["object_id"]] = [file["name"]]
+			else:
+				filesMapping[file["object_id"]].append(file["name"])
+		# Reference Link to another file
+		if file["file_type"] == 3:
+			file_name = [obj for obj in fileList if obj['id']==file["reference_file"]][0]['name']
+			if file["object_id"] not in filesMapping:
+				filesMapping[file["object_id"]] = [file_name]
+			else:
+				filesMapping[file["object_id"]].append(file_name)
 
 col = 0
 for field in fields:
@@ -169,7 +176,7 @@ def main():
 					row[field] = output
 
 				elif field == 'owner' and req['owner'] != None:
-					user= next((object_ for object_ in idMappingName['users'] if object_['id'] == req['owner']['id']), "")
+					user = next((object_ for object_ in idMappingName['users'] if object_['id'] == req['owner']['id']), "")
 					if user != '':
 						if user['first_name'] == '':
 							row['owner'] += user['username']
@@ -238,28 +245,33 @@ def main():
 											row['verified by'] += user['first_name'] + ' ' + user['last_name']
 
 
-							if 'status' in fields:
-								row["status"] = VMComponentPropertiesDirect(componentVM, row['status'], 'status', "-")
+								if 'status' in fields:
+									row["status"] = VMComponentPropertiesDirect(componentVM, row['status'], 'status', "-")
 
-							if 'verification comment' in fields:
-								row["verification comment"] = VMComponentPropertiesDirect(componentVM, row['verification comment'], 'comment', "")
+								if 'verification comment' in fields:
+									row["verification comment"] = VMComponentPropertiesDirect(componentVM, row['verification comment'], 'comment', "")
 
-							if 'custom compliance' in fields:
-								row["custom compliance"] = VMComponentPropertiesID(componentVM, row['custom compliance'], 'custom_compliance_statement', complianceList, "")
-							if 'custom compliance comment' in fields:
-								row["custom compliance comment"] = VMComponentPropertiesDirect(componentVM, row['custom compliance comment'], 'custom_compliance_comment', "")
-							if 'verification tags' in fields:
-								if row["verification tags"] != "": row["verification tags"] += verificationMethodSeparator
-								output = ""
-								tagList = componentVM['tags']
-								for item in tagList:
-									if output != "" : output += standardSeparator
-									output += item
-								row["verification tags"] += output
+								if 'custom compliance' in fields:
+									row["custom compliance"] = VMComponentPropertiesID(componentVM, row['custom compliance'], 'custom_compliance_statement', complianceList, "")
+								if 'custom compliance comment' in fields:
+									row["custom compliance comment"] = VMComponentPropertiesDirect(componentVM, row['custom compliance comment'], 'custom_compliance_comment', "")
+								if 'verification tags' in fields:
+									if row["verification tags"] != "": row["verification tags"] += verificationMethodSeparator
+									output = ""
+									tagList = componentVM['tags']
+									for item in tagList:
+										if output != "" : output += standardSeparator
+										output += item
+									row["verification tags"] += output
 
-				elif field == 'attachments':
+				elif field == 'attachments' and req['id'] in filesMapping:
 					row['attachments'] = ', '.join(map(str, filesMapping[req['id']]))
 
+				elif field == 'applicability' and req['id'] in applicabilityMap_req:
+					reqApplicability = applicabilityMap_req[req['id']]
+					componentsApplicable = [componentTypeMap[compType] for compType in reqApplicability['component_types']]
+					output = applicabilitySeparator.join(componentsApplicable)
+					row['applicability'] = output
 
 			for field in fields:
 				worksheet.write(row_num, fields.index(field), row[field], cell_format)
