@@ -23,7 +23,6 @@ fields = ['identifier', "title", "text", "specification", "rationale", "applicab
 standardSeparator = ', '
 verificationMethodSeparator = "\n"
 componentsSeparator = ', '
-applicabilitySeparator = ', '
 
 orderReqsBy = 'identifier'
 
@@ -43,7 +42,13 @@ cell_format.set_text_wrap()
 requirementList = valispace.get("requirements/complete/?project="+str(project_ID)+"&clean_text=text,comment")
 requirementList = sorted(requirementList, key = lambda i: i[orderReqsBy])
 applicabilityList = valispace.get("requirements/applicability-conditions/?project="+str(project_ID))
-applicabilityMap_req = {applicability['requirement']:applicability for applicability in applicabilityList}
+applicabilityMap_req = {}
+for applicability in applicabilityList:
+	req_id = applicability['requirement']
+	if req_id not in applicabilityMap_req:
+		applicabilityMap_req[req_id] = [applicability]
+	else:
+		applicabilityMap_req[req_id].append(applicability)
 componentTypeList = valispace.get("components/types/")
 componentTypeMap = {compType['id']:compType['name'] for compType in componentTypeList}
 
@@ -268,9 +273,12 @@ def main():
 					row['attachments'] = ', '.join(map(str, filesMapping[req['id']]))
 
 				elif field == 'applicability' and req['id'] in applicabilityMap_req:
-					reqApplicability = applicabilityMap_req[req['id']]
-					componentsApplicable = [componentTypeMap[compType] for compType in reqApplicability['component_types']]
-					output = applicabilitySeparator.join(componentsApplicable)
+					reqApplicabilities = applicabilityMap_req[req['id']]
+					output = ""
+					for reqApplicability in reqApplicabilities:
+						componentsApplicable = [componentTypeMap[compType] for compType in reqApplicability['component_types']]
+						if output != "" : output += standardSeparator
+						output += "|".join(componentsApplicable)
 					row['applicability'] = output
 
 			for field in fields:
