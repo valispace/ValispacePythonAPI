@@ -95,7 +95,8 @@ class API:
         access = "Bearer " + json['access_token']
         self._session.headers = {
             'Authorization': access,
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'User-Agent': 'valispacePythonSDK/0.1.16'
         }
         return True
 
