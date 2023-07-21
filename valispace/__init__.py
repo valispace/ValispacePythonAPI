@@ -12,7 +12,15 @@ import re
 
 class API:
     """
-    Defines REST API endpoints for Valispace.
+    Defines REST API endpoints for Valispace. Note that the core methods for
+    sending requests are get() and post(). Many other methods are convenience
+    methods that call into get/post. If you are missing a particular convenience
+    method, it should be easy to implement one following the same convention as
+    the other methods do.
+
+    If you are missing a particular endpoint, the REST documentation is available
+    on the Valispace deployment as follows:
+    https://<valispace deployment>.valispace.com/rest/
     """
 
     _writable_vali_fields = [
@@ -122,6 +130,17 @@ class API:
 
         return return_dictionary
 
+    def get_folders(self, project_id):
+        return self.get(f"requirements/specifications/folders?project={project_id}")
+
+    def get_specifications(self, project_id):
+        return self.get(f"requirements/specifications?project={project_id}")
+
+    def get_groups(self, project_id):
+        return self.get(f"requirements/groups?project={project_id}")
+
+    def get_requirements(self, project_id):
+        return self.get(f"requirements/?project={project_id}")
 
     def get_vali_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None, parent_id=None,
             parent_name=None, tag_id=None, tag_name=None, vali_marked_as_impacted=None):
