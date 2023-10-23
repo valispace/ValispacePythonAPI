@@ -22,7 +22,14 @@ class API:
     ]
 
 
-    def __init__(self, url=None, username=None, password=None, keep_credentials=False, warn_https=True):
+    def __init__(
+            self, url=None,
+            username=None,
+            password=None,
+            keep_credentials=False,
+            warn_https=True,
+            session_token=None,
+        ):
         print("\nAuthenticating Valispace...\n")
         if url is None:
             url = six.moves.input('Your Valispace url: ')
@@ -48,11 +55,13 @@ class API:
         self._oauth_url = url + '/o/token/'
         self._session = requests.Session()
         self.username, self.password = None, None
-        if self.login(username, password):
+        if session_token:
+            self._session.headers['Authorization'] = session_token
+            print("You are currently using the provided Token")
+        elif self.login(username, password):
             if keep_credentials:
                 self.username, self.password = username, password
             print("You have been successfully connected to the {} API.".format(self._url))
-
 
     def login(self, username=None, password=None):
         """
@@ -557,12 +566,13 @@ class API:
         return self.request('GET', url, data, **kwargs)
 
 
-    def request(self, method, url, data=None, **kwargs):
+    def request(self, method, url, data=None, session_token=None, **kwargs):
         """
         Generic request data
         :param method: the method
         :param url: the relative url
         :param data: the data
+        :param session_token: session token
         :param **kwargs: additional args passed to the request call
         :returns: JSON object.
         """
