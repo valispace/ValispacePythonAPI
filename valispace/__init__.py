@@ -566,13 +566,12 @@ class API:
         return self.request('GET', url, data, **kwargs)
 
 
-    def request(self, method, url, data=None, session_token=None, **kwargs):
+    def request(self, method, url, data=None, **kwargs):
         """
         Generic request data
         :param method: the method
         :param url: the relative url
         :param data: the data
-        :param session_token: session token
         :param **kwargs: additional args passed to the request call
         :returns: JSON object.
         """
