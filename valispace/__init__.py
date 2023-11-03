@@ -764,7 +764,7 @@ class API:
             custom_prompt: str,
             content_type_id: int,
             field: str,
-            objects_list: list[int],
+            objects_ids: list[int],
             parallel: bool,
             **kwargs
     ):
@@ -773,7 +773,7 @@ class API:
         :param custom_prompt: The custom prompt to send.
         :param content_type_id: The content type id of the objects in the objects_list.
         :param field: The field to apply the prompt to.
-        :param objects_list: The list of objects to update.
+        :param objects_ids: The list of objects to update.
         :param parallel: Whether to run the prompt in parallel or not.
         """
 
@@ -781,7 +781,7 @@ class API:
             "custom_prompt": custom_prompt,
             "content_type_id": content_type_id,
             "field": field,
-            "objects_list": objects_list,
+            "objects_ids": objects_ids,
             "parallel": parallel,
         }
         self.request('PUT', 'vali-assistant/general-custom-prompt/', data, **kwargs)
