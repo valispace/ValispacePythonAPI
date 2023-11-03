@@ -221,17 +221,17 @@ class ProjectTreeIterator:
 
 
 def main():
-    # parser = argparse.ArgumentParser(description='Valispace requirements export script.')
-    # parser.add_argument("username", help='Valispace user name.')
-    # parser.add_argument("password", help='Valispace user password.')
-    # parser.add_argument("valispace_url", help='Valispace URL, e.g., https://mycompany.valispace.com.')
-    # parser.add_argument("project_id", help='Valispace project ID.')
-    # args = vars(parser.parse_args())
+    parser = argparse.ArgumentParser(description='Valispace requirements export script.')
+    parser.add_argument("username", help='Valispace user name.')
+    parser.add_argument("password", help='Valispace user password.')
+    parser.add_argument("valispace_url", help='Valispace URL, e.g., https://mycompany.valispace.com.')
+    parser.add_argument("project_id", help='Valispace project ID.')
+    args = vars(parser.parse_args())
 
-    username = "admin"
-    password = "8K8Min8kaOOUyOTg$Mf&r5*GSg4FMool"
-    valispace_url = "https://demonstration.valispace.com/"
-    project_id = "24"
+    username = args["username"]
+    password = args["password"]
+    valispace_url = args["valispace_url"]
+    project_id = args["project_id"]
 
     valispace = API(url=valispace_url, username=username, password=password)
 
