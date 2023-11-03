@@ -21,7 +21,6 @@ class API:
         'minimum', 'maximum',
     ]
 
-
     def __init__(
             self, url=None,
             username=None,
@@ -29,7 +28,7 @@ class API:
             keep_credentials=False,
             warn_https=True,
             session_token=None,
-        ):
+    ):
         print("\nAuthenticating Valispace...\n")
         if url is None:
             url = six.moves.input('Your Valispace url: ')
@@ -42,7 +41,8 @@ class API:
         # Check for SSL connection before sending the username and password.
         if warn_https and url[:5] != "https":
             sys.stdout.write("Are you sure you want to use a non-SSL connection? "
-                "This will expose your password to the network and might be a significant security risk [y/n]: ")
+                             "This will expose your password to the network and might be a significant security risk "
+                             "[y/n]: ")
             while True:
                 choice = six.moves.input().lower()
                 if choice == "y":
@@ -62,7 +62,6 @@ class API:
             if keep_credentials:
                 self.username, self.password = username, password
             print("You have been successfully connected to the {} API.".format(self._url))
-
 
     def login(self, username=None, password=None):
         """
@@ -110,7 +109,6 @@ class API:
         }
         return True
 
-
     def get_all_data(self, type=None):
         """
         Returns a dict of all component/vali/textvali/tags with their properties.
@@ -120,7 +118,7 @@ class API:
             raise Exception("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags)")
 
         if type in ('component', 'vali', 'textvali'):
-            url = type + 's/' # add an s to the end to get to the right endpoint
+            url = type + 's/'  # add an s to the end to get to the right endpoint
         else:
             url = type + '/'
 
@@ -132,9 +130,8 @@ class API:
 
         return return_dictionary
 
-
     def get_vali_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None, parent_id=None,
-            parent_name=None, tag_id=None, tag_name=None, vali_marked_as_impacted=None):
+                      parent_name=None, tag_id=None, tag_name=None, vali_marked_as_impacted=None):
         """
         Returns JSON with all the Valis that mach the input arguments.
         Inputs are integers for IDs or vali_marked_as_impacted strings, and strings for names.
@@ -205,7 +202,6 @@ class API:
         # else:
         #     return response.json()
 
-
     def get_vali_names(self, project_name=None):
         """
         Returns a list of all Valis with only names and IDs.
@@ -221,7 +217,6 @@ class API:
         else:
             return self.get("valis/?fields=id,name")
 
-
     def get_vali(self, id):
         """
         Returns JSON of a unique Vali.
@@ -231,7 +226,6 @@ class API:
         if type(id) != int:
             raise Exception("VALISPACE-ERROR: The function requires an ID (int) as parameter.")
         return self.get("valis/{}/".format(id))
-
 
     def get_vali_by_name(self, vali_name, project_name):
         """
@@ -251,8 +245,7 @@ class API:
                 return self.get("valis/{}/".format(entry["id"]))
 
         raise Exception("VALISPACE-ERROR: There is no Vali with this name and project, make sure you admit a "
-            "valid full name for the vali (e.g. ComponentX.TestVali) and a valid project name.")
-
+                        "valid full name for the vali (e.g. ComponentX.TestVali) and a valid project name.")
 
     def fuzzysearch_vali(self, searchterm):
         """
@@ -270,7 +263,6 @@ class API:
             raise Exception("VALISPACE-ERROR: Could not find a matching vali for {}".format(searchterm))
         else:
             return result
-
 
     def get_vali_value(self, id):
         """
@@ -291,13 +283,12 @@ class API:
     #     """
     #     # TBD...
 
-
     def update_vali(self, id, shortname=None, formula=None, data=None):
         """
         Finds the Vali that corresponds to the input id
         and updates it with the input shortname, formula and/or data.
         """
-        if data == None :
+        if data == None:
             data = {}
         elif type(data) != dict:
             raise Exception('VALISPACE-ERROR: data needs to be a dictionary. To update formula / value use "formula"')
@@ -319,14 +310,17 @@ class API:
         url = "valis/{}/".format(id)
         return self.request('PATCH', url, data=data)
 
-
     def impact_analysis(self, id, target_vali_id, range_from, range_to, range_step_size):
         data = {}
 
         if not id:
             raise Exception("VALISPACE-ERROR: You need to pass an ID.")
 
-        url = "valis/{}/impact-analysis-graph-for/{}/?range_min={}&range_max={}&range_step_size={}".format(id, target_vali_id, range_from, range_to, range_step_size)
+        url = "valis/{}/impact-analysis-graph-for/{}/?range_min={}&range_max={}&range_step_size={}".format(id,
+                                                                                                           target_vali_id,
+                                                                                                           range_from,
+                                                                                                           range_to,
+                                                                                                           range_step_size)
         # FIXME: (patrickyeon) I special-cased this because there's some
         #        printing of returned values on error, but I suspect
         #        that is really better handled by the normal error-
@@ -337,7 +331,6 @@ class API:
             print(result.text)
             raise Exception("Invalid Request.")
         return json.loads(result.text)
-
 
     def what_if(self, vali_name, target_name, value):
         if not id or not target_name or not value:
@@ -352,17 +345,16 @@ class API:
             raise Exception("Invalid Request.")
         return json.loads(result.text)
 
-
     def get_component_list(
-        self,
-        workspace_id=None,
-        workspace_name=None,
-        project_id=None,
-        project_name=None,
-        parent_id=None,
-        parent_name=None,
-        tag_id=None,
-        tag_name=None,
+            self,
+            workspace_id=None,
+            workspace_name=None,
+            project_id=None,
+            project_name=None,
+            parent_id=None,
+            parent_name=None,
+            tag_id=None,
+            tag_name=None,
     ):
         """
         Returns JSON with all the Components that match the input arguments.
@@ -412,7 +404,6 @@ class API:
 
         return self.get(url)
 
-
     def get_component(self, id):
         """
         Returns JSON of a unique Component.
@@ -423,7 +414,6 @@ class API:
             raise Exception("VALISPACE-ERROR: The function requires an id (int) as argument.")
 
         return self.get("components/{}/".format(id))
-
 
     def get_component_by_name(self, unique_name, project_name):
         """
@@ -443,7 +433,7 @@ class API:
         for entry in component_list:
             if entry['unique_name'] == unique_name:
                 results.append(entry)
-                #return self.get("valis/{}/".format(entry["id"]))
+                # return self.get("valis/{}/".format(entry["id"]))
         num_results = len(results)
 
         if num_results == 1:
@@ -451,8 +441,8 @@ class API:
         if num_results == 0:
             raise Exception("VALISPACE-ERROR: A Component with this name does not exist. Please check for typos.")
         else:
-            raise Exception("VALISPACE-ERROR: The name you admitted is ambiguous, are you sure you used the Component's full name?")
-
+            raise Exception(
+                "VALISPACE-ERROR: The name you admitted is ambiguous, are you sure you used the Component's full name?")
 
     def get_project_list(self, workspace_id=None, workspace_name=None):
         """
@@ -472,7 +462,6 @@ class API:
             url = self.__increment_url(url) + "workspace__name={}".format(workspace_name)
         return self.get(url)
 
-
     def get_project(self, id):
         """
         Retrieve a Project via ID.
@@ -482,7 +471,6 @@ class API:
         if type(id) != int:
             raise Exception("VALISPACE-ERROR: The function requires an id (int) as argument.")
         return self.get("project/{}/".format(id))
-
 
     def get_project_by_name(self, name):
         """
@@ -501,7 +489,6 @@ class API:
         else:
             return response
 
-
     def post_data(self, type=None, data=None):
         """
         Post new component/vali/textvali/tags with the input data
@@ -517,7 +504,8 @@ class API:
             raise Exception("VALISPACE-ERROR: Type argument expected (component/vali/textvali/tags).")
 
         if type in ('component', 'vali', 'textvali'):
-            url = type + 's/' # Add an s to the end of the type for component, vali and textvali to get to the correct endpoint
+            url = type + 's/'  # Add an s to the end of the type for component, vali and textvali to get to the
+            # correct endpoint
         else:
             url = type + '/'
 
@@ -542,7 +530,6 @@ class API:
 
         return result.json()
 
-
     def post(self, url, data=None, **kwargs):
         """
         Posts data
@@ -554,7 +541,6 @@ class API:
 
         return self.request('POST', url, data, **kwargs)
 
-
     def get(self, url, data=None, **kwargs):
         """
         Posts data
@@ -565,7 +551,6 @@ class API:
         """
 
         return self.request('GET', url, data, **kwargs)
-
 
     def request(self, method, url, data=None, **kwargs):
         """
@@ -592,7 +577,6 @@ class API:
         result.raise_for_status()
         return result.json()
 
-
     def get_matrix(self, id):
         """
         Returns the correct Matrix.
@@ -614,7 +598,6 @@ class API:
             raise Exception("VALISPACE-ERROR: Matrix with id {} not found.".format(id))
         except:
             raise Exception("VALISPACE-ERROR: Unknown error.")
-
 
     def get_matrix_str(self, id):
         """
@@ -650,7 +633,8 @@ class API:
         matrix_data = self.get(url)
 
         # Check matrix dimensions.
-        if not len(matrix_formula) == matrix_data["number_of_rows"] and len(matrix_formula[0]) == matrix_data["number_of_columns"]:
+        if not len(matrix_formula) == matrix_data["number_of_rows"] and len(matrix_formula[0]) == matrix_data[
+            "number_of_columns"]:
             raise Exception('VALISPACE-ERROR: The dimensions of the local and the remote matrix do not match.')
 
         # Update referenced valis in each matrix cell
@@ -666,7 +650,6 @@ class API:
             url += "&"
         return url
 
-
     def vali_create_dataset(self, vali_id):
         """
         Creates a new dataset in vali.
@@ -677,7 +660,6 @@ class API:
 
         data = {}
         return self.post(url, data)
-
 
     def create_dataset_and_set_values(self, vali_id, input_data):
         """
@@ -732,7 +714,6 @@ class API:
 
         return dataset_id
 
-
     def vali_import_dataset(self, vali_id, data, headers=None):
         if headers is None:
             headers = []
@@ -740,18 +721,37 @@ class API:
                 headers.append(chr(ord('a') + i))
         self.request('POST', 'valis/' + str(vali_id) + '/import-dataset/', data={'headers': headers, 'data': data})
 
-    def general_prompt(self, custom_prompt: str, content_type_id: int, field: str, objects_list: list[int],  **kwargs):
+    def general_prompt(
+            self,
+            custom_prompt: str,
+            content_type_id: int,
+            field: str,
+            objects_list: list[int],
+            parallel: bool,
+            **kwargs
+    ):
         """
         Sends a general prompt to the vali assistant.
         :param custom_prompt: The custom prompt to send.
         :param content_type_id: The content type id of the objects in the objects_list.
         :param field: The field to apply the prompt to.
         :param objects_list: The list of objects to update.
+        :param parallel: Whether to run the prompt in parallel or not.
         """
         data = {
             "custom_prompt": custom_prompt,
             "content_type_id": content_type_id,
             "field": field,
-            "objects_list": objects_list
+            "objects_list": objects_list,
+            "parallel": parallel,
         }
-        self.request('POST', 'vali-assistant/general-custom-prompt/', data,  **kwargs)
+        self.request('PUT', 'vali-assistant/general-custom-prompt/', data, **kwargs)
+
+    def get_content_type_id(self, model_name: str):
+        """
+        Gets the content type id of a content type.
+        :param content_type: The content type to get the id of.
+        :returns: The content type id.
+        """
+        content_type = self.request('GET', '/contenttypes/', data={'model_name': model_name})
+        return content_type.id
