@@ -4,11 +4,28 @@ https://github.com/valispace/ValispacePythonAPI
 """
 
 import argparse
-import os.path
+import pprint
 import re
-from collections import deque
+from dataclasses import dataclass, field
+from typing import Set
 
 from valispace import API
+
+
+@dataclass
+class ValispaceDataSpecIterationContext:
+    """
+    This data container class is used during the iteration over the downloaded
+    Valispace requirements (i.e., folders, specs, groups, requirements).
+    Valispace stores group data and requirements with redundancy. For example:
+    A spec group typically contains links to its own requirements as well as the
+    requirements of its child spec groups. Since this script provides the
+    depth-first iteration, this context class collects the already visited
+    requirements and spec groups, which are used by the iterator to not yield
+    these objects more than once.
+    """
+    all_spec_requirements: Set = field(default_factory=set)
+    all_spec_groups: Set = field(default_factory=set)
 
 
 class ValispaceDataContainer:
@@ -29,118 +46,136 @@ class ValispaceDataContainer:
     #    it can be contained within a group or be at the specification's top level.
     """
 
-    def __init__(self, map_id_to_folders, map_id_to_specs, map_id_to_groups, map_id_to_reqs, top_level_folders):
+    def __init__(self, map_id_to_folders, map_id_to_specs, map_id_to_groups, map_id_to_reqs, root_folder):
         self.map_id_to_folders = map_id_to_folders
         self.map_id_to_specs = map_id_to_specs
         self.map_id_to_groups = map_id_to_groups
         self.map_id_to_reqs = map_id_to_reqs
-        self.top_level_folders = ValispaceDataContainer.sort_folders_by_name_key(top_level_folders)
+        self.root_folder = root_folder
 
     @staticmethod
     def sort_folders_by_name_key(folders):
         def convert(text): int(text) if text.isdigit() else text.lower()
-        return sorted(
+        return list(sorted(
             folders,
             key=lambda name_: [convert(c) for c in re.split('([0-9]+)', name_["name"])]
-        )
+        ))
 
-    def iterate_folders(self):
-        task_list = deque(map(lambda tlf: (tlf, []), self.top_level_folders))
+    def iterate_folder(self, folder, current_parent_stack=None):
+        if current_parent_stack is None:
+            current_parent_stack = []
+        assert folder is not None
 
-        while len(task_list) > 0:
-            current_folder, current_parent_stack = task_list.popleft()
+        # Step 1: Yield the folder itself.
 
-            yield current_folder, current_parent_stack
+        yield folder, "folder", current_parent_stack
 
-            children_ids = current_folder["children"]
-            new_parent_stack = current_parent_stack + [current_folder]
+        # Step 2: Yield the child folders.
 
-            unsorted_children = list(map(lambda ch_id: self.map_id_to_folders[ch_id], children_ids))
-            sorted_children = ValispaceDataContainer.sort_folders_by_name_key(unsorted_children)
+        new_parent_stack = current_parent_stack + [folder]
 
-            children_pairs = reversed(list(map(lambda child: (child, new_parent_stack), sorted_children)))
+        children_ids = folder["children"]
+        unsorted_children = list(map(lambda ch_id: self.map_id_to_folders[ch_id], children_ids))
+        sorted_children = ValispaceDataContainer.sort_folders_by_name_key(unsorted_children)
 
-            task_list.extendleft(children_pairs)
+        for child_folder_ in sorted_children:
+            yield from self.iterate_folder(child_folder_, new_parent_stack)
 
-    def iterate_folder_specs(self, folder):
+        # Step 3: Print the child specifications.
+
         folder_specs_ids = folder["items"] if "items" in folder else []
-        yield from map(
+        folder_specs = list(map(
             lambda folder_id: self.map_id_to_specs[folder_id], folder_specs_ids
-        )
+        ))
+        for spec_ in folder_specs:
+            yield from self.iterate_spec(spec_, new_parent_stack)
 
-    def iterate_top_level_specs(self):
-        """
-        Not all Specs are attached to Groups. Specs can be also present on the
-        root-level and have their 'folder' equal None. This method enumerates
-        over these freestanding specs.
-        """
-        return filter(
-            lambda spec: spec["folder"] is None, self.map_id_to_specs.values()
-        )
+    def iterate_spec(self, spec, current_parent_stack, context=None):
+        assert isinstance(current_parent_stack, list)
+        if context is None:
+            context = ValispaceDataSpecIterationContext()
 
-    def iterate_spec_groups(self, spec):
+        assert isinstance(spec, dict)
+
+        # Step 1: Yield the spec itself.
+
+        yield spec, "spec", current_parent_stack
+
+        # Step 2: Yield the child requirements groups.
+
+        new_parent_stack = current_parent_stack + [spec]
+
         spec_groups_ids = spec["requirement_groups"]
         spec_groups = map(
             lambda group_id: self.map_id_to_groups[group_id], spec_groups_ids
         )
-        task_list = deque(map(lambda tlf: (tlf, []), spec_groups))
 
-        # Valispace stores group children in a special way:
-        # both direct children and non-direct children are stored in "children".
-        # We maintain a set of visited items to prevent the algorithm from
-        # visiting the same nodes several times.
-        visited = set()
-        while len(task_list) > 0:
-            current_folder, current_parent_stack = task_list.popleft()
-            if current_folder["id"] in visited:
+        for child_spec_group_ in spec_groups:
+            if child_spec_group_["id"] in context.all_spec_groups:
                 continue
+            yield from self.iterate_spec_group(child_spec_group_, new_parent_stack, context=context)
 
-            visited.add(current_folder["id"])
+        # Step 3: Yield the print requirements.
 
-            yield current_folder, current_parent_stack
-
-            spec_groups_ids = current_folder["children"]
-            new_parent_stack = current_parent_stack + [current_folder]
-
-            spec_groups = map(
-                lambda group_id: self.map_id_to_groups[group_id], spec_groups_ids
-            )
-
-            children_pairs = reversed(list(map(lambda child: (child, new_parent_stack), spec_groups)))
-
-            task_list.extendleft(children_pairs)
-
-    def iterate_spec_requirements(self, spec):
-        """
-        Requirements can be attached to a requirements group, or they can be standalone,
-        without a group. This method iterates over the standalone requirements.
-        For iterating over the group-contained requirements, see another
-        method iterate_group_requirements().
-        """
         requirements_ids = spec["requirements"] if "requirements" in spec else []
-        yield from map(
+        requirements = map(
             lambda requirement_id: self.map_id_to_reqs[requirement_id], requirements_ids
         )
 
-    def iterate_group_requirements(self, group):
-        requirements_ids = group["requirements"] if "requirements" in group else []
-        yield from map(
+        for requirement_ in requirements:
+            if requirement_["id"] in context.all_spec_requirements:
+                continue
+            yield requirement_, "requirement", new_parent_stack
+            context.all_spec_requirements.add(requirement_["id"])
+
+    def iterate_spec_group(self, spec_group, current_parent_stack, context):
+        assert isinstance(spec_group, dict)
+        assert isinstance(context, ValispaceDataSpecIterationContext)
+
+        if context is None:
+            context = ValispaceDataSpecIterationContext()
+
+        # Step 1: Yield the spec group itself.
+
+        yield spec_group, "spec_group", current_parent_stack
+        context.all_spec_groups.add(spec_group["id"])
+
+        # Step 2: Yield the child spec groups.
+
+        new_parent_stack = current_parent_stack + [spec_group]
+
+        spec_groups_ids = spec_group["children"]
+
+        for child_spec_group_ in map(
+            lambda group_id: self.map_id_to_groups[group_id], spec_groups_ids
+        ):
+            if child_spec_group_["id"] in context.all_spec_groups:
+                continue
+            yield from self.iterate_spec_group(child_spec_group_, new_parent_stack, context)
+
+        # Step 3: Yield the child requirements.
+
+        requirements_ids = spec_group["requirements"] if "requirements" in spec_group else []
+        requirements = map(
             lambda requirement_id: self.map_id_to_reqs[requirement_id], requirements_ids
         )
+        for requirement_ in requirements:
+            if requirement_["id"] in context.all_spec_requirements:
+                continue
+            yield requirement_, "requirement", new_parent_stack
+            context.all_spec_requirements.add(requirement_["id"])
 
 
 class ProjectTreeIterator:
-    def __init__(self):
-        """
-        This example helper class demonstrates how the iteration methods of the
-        ValispaceDataContainer class can be used to achieve a complete iteration
-        over a Valispace project's requirements tree.
+    """
+    This example helper class demonstrates how the iteration methods of the
+    ValispaceDataContainer class can be used to achieve a complete iteration
+    over a Valispace project's requirements tree.
 
-        Below in this __init__ function, the iterator can be extended with extra
-        options for what should be iterated or skipped. The iterator function
-        can use these options for a customized iteration.
-        """
-        pass
+    Below in this __init__ function, the iterator can be extended with extra
+    options for what should be iterated or skipped. The iterator function
+    can use these options for a customized iteration.
+    """
 
     def iterate(self, container: ValispaceDataContainer):
         folders_iterated = 0
@@ -148,46 +183,30 @@ class ProjectTreeIterator:
         groups_iterated = 0
         requirements_iterated = 0
 
-        for folder, folder_parents in container.iterate_folders():
-            folders_iterated += 1
-            folder_names = list(map(lambda pf: pf["name"], folder_parents))
-            folder_names.append(folder["name"])
-            path_to_folder = os.path.join(*folder_names)
-            print(f"Iterating folder: {path_to_folder}")
+        reqs_so_far = set()
+        for node, node_type, current_stack in container.iterate_folder(container.root_folder):
+            print(f"Current node: {node_type} at level: {len(current_stack)} => ", end="")
 
-            for spec in container.iterate_folder_specs(folder):
+            if node_type == "folder":
+                folders_iterated += 1
+                print(f'Folder: {node["name"]}')
+
+            elif node_type == "spec":
                 specs_iterated += 1
+                print(f'Spec: {node["name"]}')
 
-                spec_name = spec["name"]
+            elif node_type == "spec_group":
+                groups_iterated += 1
+                print(f'Spec group: {node["name"]}')
 
-                print(f"Iterating spec: {spec_name}")
-
-                reqs_visited = set()
-                for group, group_parents in container.iterate_spec_groups(spec):
-                    groups_iterated += 1
-
-                    group_name = group["name"]
-                    print(f"Iterating group: {group_name}")
-
-                    for requirement in container.iterate_group_requirements(group):
-                        requirements_iterated += 1
-
-                        requirement_id = requirement.get("id", "<No identifier>")
-                        reqs_visited.add(requirement_id)
-
-                        requirement_uid = requirement.get("identifier", "<No identifier>")
-                        print(f"Iterating requirement: {requirement_uid}")
-
-                for requirement in container.iterate_spec_requirements(spec):
-                    if requirement["id"] in reqs_visited:
-                        continue
+            elif node_type == "requirement":
+                if node["id"] not in reqs_so_far:
                     requirements_iterated += 1
-
-                    requirement_uid = requirement.get("identifier", "<No identifier>")
-                    print(f"Iterating requirement: {requirement_uid}")
-
-        for _ in container.iterate_top_level_specs():
-            specs_iterated += 1
+                reqs_so_far.add(node["id"])
+                requirement_uid = node.get("identifier", "<No identifier>")
+                print(f"Requirement: {requirement_uid}")
+            else:
+                raise AssertionError
 
         print(f"Iteration results:")
         print(f"Folders: {folders_iterated}")
@@ -195,28 +214,27 @@ class ProjectTreeIterator:
         print(f"Groups: {groups_iterated}")
         print(f"Requirements: {requirements_iterated}")
 
-        assert folders_iterated == len(container.map_id_to_folders.values())
-        assert specs_iterated == len(container.map_id_to_specs.values())
-        assert groups_iterated == len(container.map_id_to_groups.values())
-        assert requirements_iterated == len(container.map_id_to_reqs.values())
+        assert folders_iterated == len(container.map_id_to_folders.values()), container.map_id_to_folders
+        assert specs_iterated == len(container.map_id_to_specs.values()), container.map_id_to_specs.values()
+        assert groups_iterated == len(container.map_id_to_groups.values()), container.map_id_to_groups
+        assert requirements_iterated == len(container.map_id_to_reqs.values()), container.map_id_to_reqs.values()
 
 
 def main():
-    parser = argparse.ArgumentParser(description='Valispace requirements export script.')
-    parser.add_argument("username", help='Valispace user name.')
-    parser.add_argument("password", help='Valispace user password.')
-    parser.add_argument("valispace_url", help='Valispace URL, e.g., https://mycompany.valispace.com.')
-    parser.add_argument("project_id", help='Valispace project ID.')
-    args = vars(parser.parse_args())
+    # parser = argparse.ArgumentParser(description='Valispace requirements export script.')
+    # parser.add_argument("username", help='Valispace user name.')
+    # parser.add_argument("password", help='Valispace user password.')
+    # parser.add_argument("valispace_url", help='Valispace URL, e.g., https://mycompany.valispace.com.')
+    # parser.add_argument("project_id", help='Valispace project ID.')
+    # args = vars(parser.parse_args())
 
-    username = args["username"]
-    password = args["password"]
-    valispace_url = args["valispace_url"]
-    project_id = args["project_id"]
+    username = "admin"
+    password = "8K8Min8kaOOUyOTg$Mf&r5*GSg4FMool"
+    valispace_url = "https://demonstration.valispace.com/"
+    project_id = "24"
 
     valispace = API(url=valispace_url, username=username, password=password)
 
-    top_level_folders = []
     map_id_to_folders = {}
     map_id_to_specs = {}
     map_id_to_groups = {}
@@ -226,9 +244,7 @@ def main():
     result = valispace.get_folders(project_id)
     for entry_ in result:
         map_id_to_folders[entry_["id"]] = entry_
-        if entry_["parent"] is None:
-            top_level_folders.append(entry_)
-    print(f"FOLDERS: {len(result)} total")
+    print(f"FOLDERS: {(result)}")
 
     print("SPECS")
     result = valispace.get_specifications(project_id)
@@ -248,12 +264,31 @@ def main():
         map_id_to_reqs[requiremnt["id"]] = requiremnt
     print(f"REQS: {len(result)} total")
 
+    # The Root of the project can also contain specifications that are not
+    # included to any folder. Create an artificial "ROOT" folder that becomes
+    # a yet another topmost folder and is after all top-level folders.
+
+    top_level_folders = list(filter(
+        lambda folder_: folder_["parent"] is None, map_id_to_folders.values()
+    ))
+    top_level_folders = ValispaceDataContainer.sort_folders_by_name_key(top_level_folders)
+    top_level_folders_ids = list(map(lambda tlf_: tlf_["id"], top_level_folders))
+
+    root_level_specs = filter(
+        lambda spec: spec["folder"] is None, map_id_to_specs.values()
+    )
+    root_level_specs_ids = list(map(
+        lambda spec: spec["id"], root_level_specs
+    ))
+    root_folder = {"id": "ROOT", "name": "ROOT", "items": root_level_specs_ids, "children": top_level_folders_ids}
+    map_id_to_folders["ROOT"] = root_folder
+
     container = ValispaceDataContainer(
         map_id_to_folders=map_id_to_folders,
         map_id_to_specs=map_id_to_specs,
         map_id_to_groups=map_id_to_groups,
         map_id_to_reqs=map_id_to_reqs,
-        top_level_folders=top_level_folders
+        root_folder=root_folder,
     )
 
     project_tree_iterator = ProjectTreeIterator()
