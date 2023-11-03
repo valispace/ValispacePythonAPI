@@ -148,9 +148,20 @@ class API:
 
     def get_groups(self, project_id):
         return self.get(f"requirements/groups?project={project_id}")
-
-    def get_requirements(self, project_id):
-        return self.get(f"requirements/?project={project_id}")
+    
+    def get_requirements(self, date=None, project_id=None, spec_id=None):
+        if date is not None:
+            url = f"requirements/complete/as_of/{date}/"
+        else:
+            url = f"requirements/complete/"
+        if project_id is not None:
+            url += f"?project={project_id}"           
+        if spec_id == None:
+            return self.request("GET", url)
+        else:
+            requirements = self.request("GET", url)
+            spec_requirements = [requirement for requirement in requirements if requirement["specification"]==spec_id]
+            return spec_requirements
 
     def get_vali_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None, parent_id=None,
             parent_name=None, tag_id=None, tag_name=None, vali_marked_as_impacted=None):
@@ -751,19 +762,7 @@ class API:
 
         return dataset_id
 
-    def get_requirements(self, date=None, project_id=None, spec_id=None):
-        if date is not None:
-            url = f"requirements/complete/as_of/{date}/"
-        else:
-            url = f"requirements/complete/"
-        if project_id is not None:
-            url += f"?project={project_id}"           
-        if spec_id == None:
-            return self.request("GET", url)
-        else:
-            requirements = self.request("GET", url)
-            spec_requirements = [requirement for requirement in requirements if requirement["specification"]==spec_id]
-            return spec_requirements
+    
 
     def vali_import_dataset(self, vali_id, data, headers=None):
         if headers is None:
