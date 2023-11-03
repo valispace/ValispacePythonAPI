@@ -759,18 +759,38 @@ class API:
                 headers.append(chr(ord('a') + i))
         self.request('POST', 'valis/' + str(vali_id) + '/import-dataset/', data={'headers': headers, 'data': data})
 
-    def general_prompt(self, custom_prompt: str, content_type_id: int, field: str, objects_list: list[int],  **kwargs):
+    def general_prompt(
+            self,
+            custom_prompt: str,
+            content_type_id: int,
+            field: str,
+            objects_list: list[int],
+            parallel: bool,
+            **kwargs
+    ):
         """
         Sends a general prompt to the vali assistant.
         :param custom_prompt: The custom prompt to send.
         :param content_type_id: The content type id of the objects in the objects_list.
         :param field: The field to apply the prompt to.
         :param objects_list: The list of objects to update.
+        :param parallel: Whether to run the prompt in parallel or not.
         """
+
         data = {
             "custom_prompt": custom_prompt,
             "content_type_id": content_type_id,
             "field": field,
-            "objects_list": objects_list
+            "objects_list": objects_list,
+            "parallel": parallel,
         }
-        self.request('POST', 'vali-assistant/general-custom-prompt/', data,  **kwargs)
+        self.request('PUT', 'vali-assistant/general-custom-prompt/', data, **kwargs)
+
+    def get_content_type_id(self, model_name: str):
+        """
+        Gets the content type id of a content type.
+        :param content_type: The content type to get the id of.
+        :returns: The content type id.
+        """
+        content_type = self.request('GET', '/contenttypes/', data={'model_name': model_name})
+        return content_type.id
