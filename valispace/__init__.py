@@ -784,7 +784,7 @@ class API:
             "objects_ids": objects_ids,
             "parallel": parallel,
         }
-        self.request('PUT', 'vali-assistant/general-custom-prompt/', data, **kwargs)
+        return self.request('PUT', 'vali-assistant/general-custom-prompt/', data, **kwargs)
 
     def get_content_type_id(self, model: str):
         """
