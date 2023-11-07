@@ -12,7 +12,15 @@ import re
 
 class API:
     """
-    Defines REST API endpoints for Valispace.
+    Defines REST API endpoints for Valispace. Note that the core methods for
+    sending requests are get() and post(). Many other methods are convenience
+    methods that call into get/post. If you are missing a particular convenience
+    method, it should be easy to implement one following the same convention as
+    the other methods do.
+
+    If you are missing a particular endpoint, the REST documentation is available
+    on the Valispace deployment as follows:
+    https://<valispace deployment>.valispace.com/rest/
     """
 
     _writable_vali_fields = [
@@ -132,6 +140,17 @@ class API:
 
         return return_dictionary
 
+    def get_folders(self, project_id):
+        return self.get(f"requirements/specifications/folders?project={project_id}")
+
+    def get_specifications(self, project_id):
+        return self.get(f"requirements/specifications?project={project_id}")
+
+    def get_groups(self, project_id):
+        return self.get(f"requirements/groups?project={project_id}")
+
+    def get_requirements(self, project_id):
+        return self.get(f"requirements/?project={project_id}")
 
     def get_vali_list(self, workspace_id=None, workspace_name=None, project_id=None, project_name=None, parent_id=None,
             parent_name=None, tag_id=None, tag_name=None, vali_marked_as_impacted=None):
@@ -740,18 +759,38 @@ class API:
                 headers.append(chr(ord('a') + i))
         self.request('POST', 'valis/' + str(vali_id) + '/import-dataset/', data={'headers': headers, 'data': data})
 
-    def general_prompt(self, custom_prompt: str, content_type_id: int, field: str, objects_list: list[int],  **kwargs):
+    def general_prompt(
+            self,
+            custom_prompt: str,
+            content_type_id: int,
+            field: str,
+            objects_ids: list[int],
+            parallel: bool,
+            **kwargs
+    ):
         """
         Sends a general prompt to the vali assistant.
         :param custom_prompt: The custom prompt to send.
         :param content_type_id: The content type id of the objects in the objects_list.
         :param field: The field to apply the prompt to.
-        :param objects_list: The list of objects to update.
+        :param objects_ids: The list of objects to update.
+        :param parallel: Whether to run the prompt in parallel or not.
         """
+
         data = {
             "custom_prompt": custom_prompt,
             "content_type_id": content_type_id,
             "field": field,
-            "objects_list": objects_list
+            "objects_ids": objects_ids,
+            "parallel": parallel,
         }
-        self.request('POST', 'vali-assistant/general-custom-prompt/', data,  **kwargs)
+        self.request('PUT', 'vali-assistant/general-custom-prompt/', data, **kwargs)
+
+    def get_content_type_id(self, model_name: str):
+        """
+        Gets the content type id of a content type.
+        :param content_type: The content type to get the id of.
+        :returns: The content type id.
+        """
+        content_type = self.request('GET', '/contenttypes/', data={'model_name': model_name})
+        return content_type.id
