@@ -786,11 +786,11 @@ class API:
         }
         self.request('PUT', 'vali-assistant/general-custom-prompt/', data, **kwargs)
 
-    def get_content_type_id(self, model_name: str):
+    def get_content_type_id(self, model: str):
         """
         Gets the content type id of a content type.
-        :param content_type: The content type to get the id of.
+        :param model: The model to get the content type id of.
         :returns: The content type id.
         """
-        content_type = self.request('GET', '/contenttypes/', data={'model_name': model_name})
-        return content_type.id
+        content_type = self.request('GET', 'contenttypes/', data={'model': model})[0]
+        return content_type["id"]
