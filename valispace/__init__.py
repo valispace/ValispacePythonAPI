@@ -766,7 +766,7 @@ class API:
             field: str,
             objects_ids: list[int],
             parallel: bool,
-            replace_valis_by_id: bool,
+            replace_valis_by_id: bool = True,
             **kwargs
     ):
         """
