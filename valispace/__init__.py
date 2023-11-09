@@ -762,7 +762,7 @@ class API:
     def general_prompt(
             self,
             custom_prompt: str,
-            content_type_id: int,
+            model: str,
             field: str,
             objects_ids: list[int],
             parallel: bool,
@@ -771,7 +771,7 @@ class API:
         """
         Sends a general prompt to the vali assistant.
         :param custom_prompt: The custom prompt to send.
-        :param content_type_id: The content type id of the objects in the objects_list.
+        :param model: Model name of the objects.
         :param field: The field to apply the prompt to.
         :param objects_ids: The list of objects to update.
         :param parallel: Whether to run the prompt in parallel or not.
@@ -779,7 +779,7 @@ class API:
 
         data = {
             "custom_prompt": custom_prompt,
-            "content_type_id": content_type_id,
+            "content_type_id": self.get_content_type_id(model),
             "field": field,
             "objects_ids": objects_ids,
             "parallel": parallel,
