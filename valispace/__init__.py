@@ -766,6 +766,7 @@ class API:
             field: str,
             objects_ids: list[int],
             parallel: bool,
+            replace_valis_by_id: bool = True,
             **kwargs
     ):
         """
@@ -775,6 +776,7 @@ class API:
         :param field: The field to apply the prompt to.
         :param objects_ids: The list of objects to update.
         :param parallel: Whether to run the prompt in parallel or not.
+        :param replace_valis_by_id: Whether to replace valis by their ids or not.
         """
 
         data = {
@@ -783,6 +785,7 @@ class API:
             "field": field,
             "objects_ids": objects_ids,
             "parallel": parallel,
+            "replace_valis_by_id": replace_valis_by_id,
         }
         return self.request('PUT', 'vali-assistant/general-custom-prompt/', data, **kwargs)
 
