@@ -771,7 +771,7 @@ class API:
         """
         Sends a general prompt to the vali assistant.
         :param custom_prompt: The custom prompt to send.
-        :param content_type_id: The content type id of the objects in the objects_list.
+        :param model: Model name of the objects.
         :param field: The field to apply the prompt to.
         :param objects_ids: The list of objects to update.
         :param parallel: Whether to run the prompt in parallel or not.
