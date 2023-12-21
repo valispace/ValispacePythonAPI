@@ -28,6 +28,7 @@ class API:
         'formula', 'description', 'parent', 'tags', 'shortname',
         'minimum', 'maximum',
     ]
+    offline_assistant = False
 
 
     def __init__(
@@ -70,6 +71,8 @@ class API:
             if keep_credentials:
                 self.username, self.password = username, password
             print("You have been successfully connected to the {} API.".format(self._url))
+        self.get_configs()
+
 
 
     def login(self, username=None, password=None):
@@ -139,6 +142,14 @@ class API:
             return_dictionary[str(data["id"])] = data
 
         return return_dictionary
+
+    def get_configs(self):
+        """
+        Get the configurations of the deployment for Vali Assistant
+        """
+        response = self.get("ui/angular-settings/")
+        assistant_settings = response.json().get("vali_assistant")
+        self.offline_assistant = assistant_settings.get("offline_assistant", False)
 
     def get_folders(self, project_id):
         return self.get(f"requirements/specifications/folders?project={project_id}")
@@ -767,6 +778,7 @@ class API:
             objects_ids: list[int],
             parallel: bool,
             replace_valis_by_id: bool = True,
+            service_type: int = None,
             **kwargs
     ):
         """
@@ -777,7 +789,10 @@ class API:
         :param objects_ids: The list of objects to update.
         :param parallel: Whether to run the prompt in parallel or not.
         :param replace_valis_by_id: Whether to replace valis by their ids or not.
+        :param service_type: The service type to use.
         """
+        if service_type is None:
+            service_type = 0 if self.offline_assistant else 1
 
         data = {
             "custom_prompt": custom_prompt,
@@ -786,6 +801,7 @@ class API:
             "objects_ids": objects_ids,
             "parallel": parallel,
             "replace_valis_by_id": replace_valis_by_id,
+            "service_type": service_type,
         }
         return self.request('PUT', 'vali-assistant/general-custom-prompt/', data, **kwargs)
 
