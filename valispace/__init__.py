@@ -148,7 +148,7 @@ class API:
         Get the configurations of the deployment for Vali Assistant
         """
         response = self.get("ui/angular-settings/")
-        assistant_settings = response.json().get("vali_assistant")
+        assistant_settings = response.get("vali_assistant")
         self.offline_assistant = assistant_settings.get("offline_assistant", False)
 
     def get_folders(self, project_id):
