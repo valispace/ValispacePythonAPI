@@ -1,0 +1,113 @@
+####################################################################################
+## This workflow automates the build and release process for Valispace            ##
+## Python API. Triggered on pushes to the master branch, the workflow             ##
+## sets up Python environments for multiple versions (3.9),                       ##
+## displays the Python version, installs Twine for package management, builds     ##
+## the project using python setup.py bdist_wheel, and releases the distribution   ##
+## files to  PyPI using Twine.                                                    ##
+####################################################################################
+
+name: Create new Valispace Python API release
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  pre_checks:
+    runs-on: ubuntu-latest
+    
+    # Define variables to share across jobs
+    outputs:
+      current_version: ${{ steps.get_version.outputs.current_version}}
+      skip_action: ${{ steps.check_setup.outputs.skip_action}}
+
+    steps:
+
+      # Project checkout
+      - name: Checkout project
+        uses: actions/checkout@v4
+      
+      # Get Valispace Python API version
+      - name: Get version
+        id: get_version
+        run: |
+          version=$(grep --extended-regexp "version" "setup.py" | awk -F"'" '{print $2}')
+          echo "current_version=$version" >> "$GITHUB_OUTPUT"
+      
+      # Check if version present on master branch is the same as latest tag
+      - name: Check if setup.py was updated
+        id: check_setup
+        run: |
+          latest_tag=$(git describe --tags --abbrev=0 --always)
+          current_version=${{ steps.get_version.outputs.current_version }}
+
+          echo "Current version: $current_version"
+          echo "Latest tag: $latest_tag"
+
+          if [ "$current_version" == "$latest_tag" ]; then
+            echo "Setup.py version is equal to the latest Git tag. Action will be terminated."
+            echo "skip_action=True" >> "$GITHUB_OUTPUT"
+          else
+            echo "Setup.py version is different from the latest Git tag. Action will continue."
+            echo "skip_action=False" >> "$GITHUB_OUTPUT"
+          fi
+        
+        shell: bash
+  
+  # Execute Python API Build and deploy if version present on master branch is different from latest tag
+  python_api_build_and_deploy:
+    needs: pre_checks
+    if: needs.pre_checks.outputs.skip_action == 'false'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    
+    steps:
+
+      # Project checkout
+      - name: Checkout project
+        uses: actions/checkout@v4
+      
+      # Use python versions defined on strategy.matrix
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # Print python version currently in use
+      - name: Display Python version
+        run: python -c "import sys; print(sys.version)"
+
+      # Install dependecies used to build Valispace Python API
+      - name: Install Dependencies
+        run: |
+          pip install twine
+          pip install wheel
+      
+      # Build Valispace Python API
+      - name: Build project
+        run: python setup.py bdist_wheel
+
+      #Upload new version to twine
+      - name: Release API on PyPi
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        run: twine upload dist/*
+
+      # Create new release using the current version
+      - name: 'Create new release in GitHub'
+        id: release
+        uses: ncipollo/release-action@v1
+        env:
+          GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}'
+        with:
+          commit: '${{ steps.setup.outputs.branch }}'
+          tag: '${{ needs.pre_checks.outputs.current_version }}'
+          name: '${{ needs.pre_checks.outputs.current_version }}'
+          generateReleaseNotes: true
+          allowUpdates: true
+          prerelease: false
