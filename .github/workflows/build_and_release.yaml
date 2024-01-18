@@ -13,8 +13,12 @@ on:
   push:
     branches:
       - master
+  
+env:
+  VALIFN_PYTHON_REPO: valifn-python
 
 jobs:
+  # Defines pre-checks, will evaluate if a new release is needed
   pre_checks:
     runs-on: ubuntu-latest
     
@@ -111,3 +115,71 @@ jobs:
           generateReleaseNotes: true
           allowUpdates: true
           prerelease: false
+  
+  # Bump valispace dependency on valifn repo
+  bump_valifn_version:
+    needs: ["pre_checks", "python_api_build_and_deploy"]
+    if: needs.pre_checks.outputs.skip_action == 'false'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.9"]
+    
+    steps:
+
+      # Clone valifn-repo
+      - name: Clone valifn-python repository
+        id: valifn-python-clone
+        uses: actions/checkout@v2
+        with:
+          repository: valispace/${{ env.VALIFN_PYTHON_REPO }}
+          token: ${{ secrets.GH_ACTIONS_REPO_ADMIN_CI_TOKEN }}
+          path: ${{ env.VALIFN_PYTHON_REPO }}
+          ref: develop
+      
+      # Setup GitHub Action Account
+      - name: Setup Action Account
+        working-directory: ${{ env.VALIFN_PYTHON_REPO }}
+        shell: bash
+        run: |
+          git config --local user.email "actions@github.com"
+          git config --local user.name "GitHub Actions"
+      
+      # Create new branch on valifn repo
+      - name: Create a new branch
+        working-directory: ${{ env.VALIFN_PYTHON_REPO }}
+        shell: bash
+        run: |
+          git checkout -B bump-api-to-version-${{ needs.pre_checks.outputs.current_version }}
+      
+      # Bump valispace dependency on valifn repo
+      - name: Bump version of valifn-python
+        id: valifn-python-bump
+        working-directory: ${{ env.VALIFN_PYTHON_REPO }}
+        shell: bash
+        run: | 
+          sed -i "s/valispace==[0-9.]*\.[0-9.]*\.[0-9]*/valispace==${{ needs.pre_checks.outputs.current_version }}/" requirements.txt
+      
+      # Commit and push version bump
+      - name: Commit and push
+        working-directory: ${{ env.VALIFN_PYTHON_REPO }}
+        shell: bash
+        run: |
+          git add requirements.txt
+          git commit -m "Bump API to version ${{ needs.pre_checks.outputs.current_version }}"
+          git push --set-upstream origin bump-api-to-version-${{ needs.pre_checks.outputs.current_version }}
+      
+      # Create Pull Request template on valifn repo
+      - name: Create template for PR
+        working-directory: ${{ env.VALIFN_PYTHON_REPO }}
+        shell: bash
+        run: |
+          echo -e "# Changelog\n* Bump API to version ${{ needs.pre_checks.outputs.current_version }}" > changelog.md
+      
+      # Create Pull Request on valifn repo
+      - name: Open Pull Request
+        working-directory: ${{ env.VALIFN_PYTHON_REPO }}
+        env:
+          GH_TOKEN: ${{ secrets.GH_ACTIONS_REPO_ADMIN_CI_TOKEN }}
+        run: | 
+          gh pr create -B develop -H bump-api-to-version-${{ needs.pre_checks.outputs.current_version }} --title 'Bump API to version ${{ needs.pre_checks.outputs.current_version }}' --body-file changelog.md --reviewer valispace/devops
