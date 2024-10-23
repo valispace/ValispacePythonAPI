@@ -33,6 +33,11 @@ At this step you will need to enter your Valispace url (e.g. <https://demo.valis
 ```python
 valispace = valispace.API(url='https://demo.valispace.com', username='your_user_name', password='******')
 ```
+Alternative login can also be performed with session_token instead of username and password for authentication
+```python
+valispace = valispace.API(url='https://demo.valispace.com', session_token="Bearer your_session_token")
+```
+
 
 Then use the Valispace API like this:
 
